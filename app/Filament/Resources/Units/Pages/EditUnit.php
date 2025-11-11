@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Units\Pages;
 
 use App\Domain\Services\UnitServiceInterface;
 use App\Filament\Resources\Units\UnitResource;
+use App\Models\Unit;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,9 +21,15 @@ class EditUnit extends EditRecord
         $this->unitService = $unitService;
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        return $this->unitService->update($record, $data);
+        /** @var Unit $unit */
+        $unit = $record;
+
+        return $this->unitService->update($unit, $data);
     }
 
     protected function getSavedNotificationTitle(): ?string
@@ -30,8 +37,14 @@ class EditUnit extends EditRecord
         return 'Unit updated';
     }
 
+    /**
+     * @param  Unit  $record
+     */
     protected function handleRecordDeletion(Model $record): void
     {
-        $this->unitService->delete($record);
+        /** @var Unit $unit */
+        $unit = $record;
+
+        $this->unitService->delete($unit);
     }
 }

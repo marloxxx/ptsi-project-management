@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Models\Activity;
 use UnitEnum;
@@ -57,17 +58,21 @@ class ActivityLogResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return static::canViewAny();
+        return self::canViewAny();
     }
 
     public static function canViewAny(): bool
     {
-        return static::currentUser()?->can('audit-logs.view') ?? false;
+        return self::currentUser()?->can('audit-logs.view') ?? false;
     }
 
-    public static function canView($record): bool
+    public static function canView(Model $record): bool
     {
-        return static::currentUser()?->can('view', $record) ?? false;
+        if (! $record instanceof Activity) {
+            return false;
+        }
+
+        return self::currentUser()?->can('view', $record) ?? false;
     }
 
     public static function getNavigationLabel(): string

@@ -11,6 +11,8 @@ interface UserServiceInterface
 {
     /**
      * Get all users.
+     *
+     * @return Collection<int, User>
      */
     public function all(): Collection;
 
@@ -21,11 +23,17 @@ interface UserServiceInterface
 
     /**
      * Create new user.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array<int, string>|null  $roles
      */
     public function create(array $data, ?array $roles = null): User;
 
     /**
      * Update existing user.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array<int, string>|null  $roles
      */
     public function update(int $id, array $data, ?array $roles = null): bool;
 
@@ -46,6 +54,8 @@ interface UserServiceInterface
 
     /**
      * Assign roles to user.
+     *
+     * @param  array<int, string>  $roles
      */
     public function assignRoles(int $userId, array $roles): bool;
 }

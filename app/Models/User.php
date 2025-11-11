@@ -126,9 +126,16 @@ class User extends Authenticatable implements FilamentUser
 
     /**
      * Get the unit associated with the user.
+     *
+     * @return BelongsTo<Unit>
+     *
+     * @phpstan-return BelongsTo<Unit, static>
      */
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class);
+        /** @var BelongsTo<Unit, static> $relation */
+        $relation = $this->belongsTo(Unit::class);
+
+        return $relation;
     }
 }

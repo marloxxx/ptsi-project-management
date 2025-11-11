@@ -55,7 +55,7 @@ jobs:
         run: ./vendor/bin/pint --test
 
       - name: Static Analysis (PHPStan)
-        run: ./vendor/bin/phpstan analyse --no-progress
+        run: ./vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=1G
 
       - name: Run Tests
         run: php artisan test --verbose

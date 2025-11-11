@@ -11,6 +11,7 @@ use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Role;
 
 class EditRole extends EditRecord
 {
@@ -27,7 +28,7 @@ class EditRole extends EditRecord
     {
         return [
             DeleteAction::make()
-                ->authorize(fn (): bool => Auth::user()?->can('roles.delete') ?? false)
+                ->authorize(fn(): bool => Auth::user()?->can('roles.delete') ?? false)
                 ->requiresConfirmation(),
         ];
     }
@@ -37,16 +38,30 @@ class EditRole extends EditRecord
         $this->roleService = $roleService;
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        $data['permissions'] = $this->record->permissions->pluck('name')->toArray();
+        /** @var Role $role */
+        $role = $this->record;
+
+        $data['permissions'] = $role->permissions->pluck('name')->toArray();
 
         return $data;
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $permissions = $data['permissions'] ?? null;
+        if (! $record instanceof Role) {
+            throw new \InvalidArgumentException('Expected Role model.');
+        }
+
+        $permissions = isset($data['permissions']) ? array_map('strval', (array) $data['permissions']) : null;
         unset($data['permissions']);
 
         $this->roleService->update((int) $record->getKey(), $data, $permissions);
@@ -56,6 +71,10 @@ class EditRole extends EditRecord
 
     protected function handleRecordDeletion(Model $record): void
     {
+        if (! $record instanceof Role) {
+            throw new \InvalidArgumentException('Expected Role model.');
+        }
+
         $this->roleService->delete((int) $record->getKey());
     }
 }

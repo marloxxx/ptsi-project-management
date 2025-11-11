@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
         Schema::create('breezy_sessions', function (Blueprint $table) {
             $table->id();
@@ -21,10 +21,9 @@ return new class extends Migration
             $table->timestamp('two_factor_confirmed_at')->nullable();
             $table->timestamps();
         });
-
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('breezy_sessions');
     }

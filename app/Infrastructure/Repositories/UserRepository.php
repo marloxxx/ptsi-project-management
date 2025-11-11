@@ -16,6 +16,8 @@ class UserRepository implements UserRepositoryInterface
 
     /**
      * Get all User records.
+     *
+     * @return Collection<int, User>
      */
     public function all(): Collection
     {
@@ -56,6 +58,8 @@ class UserRepository implements UserRepositoryInterface
 
     /**
      * Create new User.
+     *
+     * @param  array<string, mixed>  $data
      */
     public function create(array $data): User
     {
@@ -64,6 +68,8 @@ class UserRepository implements UserRepositoryInterface
 
     /**
      * Update User.
+     *
+     * @param  array<string, mixed>  $data
      */
     public function update(int $id, array $data): bool
     {

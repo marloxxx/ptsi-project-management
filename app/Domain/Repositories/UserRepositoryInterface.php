@@ -11,6 +11,8 @@ interface UserRepositoryInterface
 {
     /**
      * Get all User records.
+     *
+     * @return Collection<int, User>
      */
     public function all(): Collection;
 
@@ -36,11 +38,15 @@ interface UserRepositoryInterface
 
     /**
      * Create new User.
+     *
+     * @param  array<string, mixed>  $data
      */
     public function create(array $data): User;
 
     /**
      * Update User.
+     *
+     * @param  array<string, mixed>  $data
      */
     public function update(int $id, array $data): bool;
 

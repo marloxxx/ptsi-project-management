@@ -18,16 +18,26 @@ class UnitService implements UnitServiceInterface
         private UnitRepositoryInterface $units
     ) {}
 
+    /**
+     * @return Collection<int, Unit>
+     */
     public function all(?string $status = null): Collection
     {
         return $this->units->all($status);
     }
 
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return LengthAwarePaginator<int, Unit>
+     */
     public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         return $this->units->paginate($perPage, $filters);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function create(array $data): Unit
     {
         return DB::transaction(function () use ($data) {
@@ -43,6 +53,9 @@ class UnitService implements UnitServiceInterface
         });
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function update(Unit $unit, array $data): Unit
     {
         return DB::transaction(function () use ($unit, $data) {
@@ -74,6 +87,9 @@ class UnitService implements UnitServiceInterface
         });
     }
 
+    /**
+     * @return Collection<int, Unit>
+     */
     public function options(?string $status = 'active'): Collection
     {
         return $this->units->options($status);
@@ -81,16 +97,24 @@ class UnitService implements UnitServiceInterface
 
     /**
      * Prepare payload before persisting to repository.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array{name: string, code: string, sinav_unit_id: string|null, status: string}
      */
     private function preparePayload(array $data, ?Unit $unit = null): array
     {
         $payload = Arr::only($data, ['name', 'code', 'sinav_unit_id', 'status']);
 
-        $payload['name'] = trim((string) ($payload['name'] ?? $unit?->name ?? ''));
-        $payload['code'] = strtoupper(trim((string) ($payload['code'] ?? $unit?->code ?? '')));
-        $payload['status'] = $payload['status'] ?? $unit?->status ?? 'active';
-        $payload['sinav_unit_id'] = $payload['sinav_unit_id'] ?: null;
+        $name = $payload['name'] ?? ($unit !== null ? $unit->name : '');
+        $code = $payload['code'] ?? ($unit !== null ? $unit->code : '');
+        $status = $payload['status'] ?? ($unit !== null ? $unit->status : 'active');
+        $sinavUnitId = $payload['sinav_unit_id'] ?? ($unit !== null ? $unit->sinav_unit_id : null);
 
-        return $payload;
+        return [
+            'name' => trim((string) $name),
+            'code' => strtoupper(trim((string) $code)),
+            'status' => (string) $status,
+            'sinav_unit_id' => $sinavUnitId !== null && $sinavUnitId !== '' ? (string) $sinavUnitId : null,
+        ];
     }
 }

@@ -19,8 +19,8 @@ Route::name('filament.')
 
 if ($filamentLoginRoute = Route::getRoutes()->getByName('filament.admin.auth.login')) {
     Route::getRoutes()->add(
-        tap(clone $filamentLoginRoute, static function ($route): void {
-            $route->setName('login');
+        tap(clone $filamentLoginRoute, static function (\Illuminate\Routing\Route $route): void {
+            $route->name('login');
         }),
     );
 }
