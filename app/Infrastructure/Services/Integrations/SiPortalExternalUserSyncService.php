@@ -24,7 +24,7 @@ use Throwable;
 class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterface
 {
     /**
-     * @param callable(string, array<string, mixed>, string): void|null $progressCallback
+     * @param  callable(string, array<string, mixed>, string): void|null  $progressCallback
      */
     public function __construct(
         private UnitServiceInterface $unitService,
@@ -59,7 +59,7 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
     }
 
     /**
-     * @param array{units: array{synced:int, created:int, updated:int, skipped:int}, users: array{synced:int, created:int, updated:int, skipped:int, failed:int}, errors: array<int, array{message:string, context:array<string, mixed>}>} $summary
+     * @param  array{units: array{synced:int, created:int, updated:int, skipped:int}, users: array{synced:int, created:int, updated:int, skipped:int, failed:int}, errors: array<int, array{message:string, context:array<string, mixed>}>}  $summary
      * @return array{units: array{synced:int, created:int, updated:int, skipped:int}, users: array{synced:int, created:int, updated:int, skipped:int, failed:int}, errors: array<int, array{message:string, context:array<string, mixed>}>}
      */
     private function syncUnits(array $summary, ?callable $progressCallback): array
@@ -120,7 +120,7 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
     }
 
     /**
-     * @param array{units: array{synced:int, created:int, updated:int, skipped:int}, users: array{synced:int, created:int, updated:int, skipped:int, failed:int}, errors: array<int, array{message:string, context:array<string, mixed>}>} $summary
+     * @param  array{units: array{synced:int, created:int, updated:int, skipped:int}, users: array{synced:int, created:int, updated:int, skipped:int, failed:int}, errors: array<int, array{message:string, context:array<string, mixed>}>}  $summary
      * @return array{units: array{synced:int, created:int, updated:int, skipped:int}, users: array{synced:int, created:int, updated:int, skipped:int, failed:int}, errors: array<int, array{message:string, context:array<string, mixed>}>}
      */
     private function syncUsers(array $summary, ?callable $progressCallback): array
@@ -232,13 +232,13 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
         } while ($page <= $lastPage);
 
         return $items
-            ->filter(fn($item): bool => is_array($item))
+            ->filter(fn ($item): bool => is_array($item))
             ->values()
-            ->map(fn(array $item): array => $item);
+            ->map(fn (array $item): array => $item);
     }
 
     /**
-     * @param array<string, mixed> $query
+     * @param  array<string, mixed>  $query
      */
     private function request(string $url, array $query = []): Response
     {
@@ -258,7 +258,7 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array{name:string, code:string, sinav_unit_id:?string, status:string}|null
      */
     private function normalizeUnitPayload(array $payload): ?array
@@ -282,7 +282,7 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
     }
 
     /**
-     * @param array{name:string, code:string, sinav_unit_id:?string, status:string} $payload
+     * @param  array{name:string, code:string, sinav_unit_id:?string, status:string}  $payload
      */
     private function resolveUnit(array $payload): ?Unit
     {
@@ -298,7 +298,7 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array{attributes: array<string, mixed>, context: array<string, mixed>}|null
      */
     private function normalizeUserPayload(array $payload): ?array
@@ -363,7 +363,7 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
                     ?? Arr::get($payload, 'unit.nama_unit')
                     ?? Arr::get($payload, 'unit_name')
             ),
-        ], static fn($value): bool => $value !== null);
+        ], static fn ($value): bool => $value !== null);
 
         return [
             'attributes' => $attributes,
@@ -372,7 +372,7 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     private function resolveUserUnit(array $payload): ?Unit
     {
@@ -401,7 +401,7 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     private function resolveUser(array $attributes): ?User
     {
@@ -443,8 +443,8 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
     }
 
     /**
-     * @param array{units: array{synced:int, created:int, updated:int, skipped:int}, users: array{synced:int, created:int, updated:int, skipped:int, failed:int}, errors: array<int, array{message:string, context:array<string, mixed>}>} &$summary
-     * @param array<string, mixed> $context
+     * @param  array{units: array{synced:int, created:int, updated:int, skipped:int}, users: array{synced:int, created:int, updated:int, skipped:int, failed:int}, errors: array<int, array{message:string, context:array<string, mixed>}>}  &$summary
+     * @param  array<string, mixed>  $context
      */
     private function recordError(array &$summary, string $message, array $context = []): void
     {
@@ -455,7 +455,7 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     private function notifyProgress(?callable $callback, string $entity, array $payload, string $status): void
     {

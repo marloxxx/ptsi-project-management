@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
@@ -73,7 +75,7 @@ class AdminPanelProvider extends PanelProvider
             ->globalSearch()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->userMenuItems([
-                'profile' => fn(Action $action) => $action
+                'profile' => fn (Action $action) => $action
                     ->label('My Profile')
                     ->icon('heroicon-o-user')
                     ->url(Profile::getUrl()),
