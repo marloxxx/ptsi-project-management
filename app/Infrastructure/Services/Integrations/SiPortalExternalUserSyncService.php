@@ -229,7 +229,7 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
         } while ($page <= $lastPage);
 
         return $items
-            ->filter(fn($item): bool => is_array($item))
+            ->filter(fn ($item): bool => is_array($item))
             ->values()
             ->map(function (array $item): array {
                 /** @var array<string, mixed> $item */
@@ -363,7 +363,7 @@ class SiPortalExternalUserSyncService implements ExternalUserSyncServiceInterfac
                     ?? Arr::get($payload, 'unit.nama_unit')
                     ?? Arr::get($payload, 'unit_name')
             ),
-        ], static fn($value): bool => $value !== null);
+        ], static fn ($value): bool => $value !== null);
 
         return [
             'attributes' => $attributes,
