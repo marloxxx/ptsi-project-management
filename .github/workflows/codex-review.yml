@@ -1,0 +1,56 @@
+name: Codex PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Laravel Pint (style)
+        run: vendor/bin/pint --test || true
+
+      - name: Larastan (static analysis)
+        run: vendor/bin/phpstan analyse --no-progress || true
+
+      - name: Codex Review
+        uses: openai/codex-action@v1
+        with:
+          mode: review
+          config: .codex.yml
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+  act:
+    if: github.event_name == 'issue_comment'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Codex Act
+        uses: openai/codex-action@v1
+        with:
+          mode: act
+          config: .codex.yml
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+

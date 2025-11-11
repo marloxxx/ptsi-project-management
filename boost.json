@@ -1,0 +1,47 @@
+{
+    "title": "PTSI Admin - Laravel Starter Kit",
+    "description": "Laravel 12 + Filament 4 Starter Kit with Clean Architecture for PT Surveyor Indonesia. Reference docs/LARAVEL_BOOST_GUIDE.md for complete guidelines.",
+    "agents": {
+        "boost": true,
+        "filament/core": true,
+        "filament/v4": true,
+        "foundation": true,
+        "laravel/core": true,
+        "laravel/v12": true,
+        "livewire/core": true,
+        "livewire/v3": true,
+        "php": true,
+        "phpunit/core": true,
+        "pint/core": true
+    },
+    "custom_guidelines": [
+        {
+            "title": "📖 PTSI Documentation Structure",
+            "content": "Complete documentation available:\n\n**Quick Reference:**\n- docs/QUICK_START.md - 5-minute setup guide\n- docs/INDEX.md - Documentation index\n\n**Core Guides:**\n- docs/LARAVEL_BOOST_GUIDE.md - MUST READ: Coding standards & best practices\n- ARCHITECTURE.md - Clean architecture patterns\n- docs/DEVELOPER_WORKFLOW.md - Daily development workflow\n\n**Deployment:**\n- SETUP.md - Installation & configuration\n- docs/DEPLOYMENT_GUIDE.md - Production deployment\n- docs/INFRASTRUCTURE_GUIDE.md - Infrastructure setup\n\n**Security & Quality:**\n- docs/SECURITY_COMPLIANCE_GUIDE.md - Security standards\n- docs/OBSERVABILITY_PERFORMANCE_GUIDE.md - Monitoring & performance\n- CONTRIBUTING.md - Contribution guidelines"
+        },
+        {
+            "title": "🏗️ PTSI Clean Architecture (Interface-First)",
+            "content": "Strict layer separation:\n\n**Contracts Layer (app/Domain/):**\n- ONLY interfaces and contracts\n- NO framework dependencies\n- NO implementations\nExample: UserRepositoryInterface, UserServiceInterface\n\n**Application Layer (app/Application/):**\n- Service implementations\n- Policies (Authorization)\n- Actions (Atomic operations)\n\n**Infrastructure Layer (app/Infrastructure/):**\n- Repository implementations (Eloquent)\n- External services (API clients, etc)\n\n**UI Layer (app/Filament/):**\n- Resources, Pages, Widgets\n- NO business logic\n- ONLY call Services\n- Validation in Form Schema\n\n⚠️ CRITICAL: Register ALL interfaces in app/Providers/DomainServiceProvider.php"
+        },
+        {
+            "title": "🎯 Module Generation Workflow",
+            "content": "Use kit:make-module for all new features:\n\n**Step 1: Generate**\nphp artisan kit:make-module Product --with-repository --with-service --with-policy --with-filament\n\n**Step 2: Create Model**\nphp artisan make:model Product -m\n\n**Step 3: Implement**\n- Edit app/Infrastructure/Repositories/ProductRepository.php\n- Edit app/Application/Services/ProductService.php\n- Edit migration file\n\n**Step 4: Register Bindings**\nIn app/Providers/DomainServiceProvider.php:\n$this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);\n$this->app->bind(ProductServiceInterface::class, ProductService::class);\n\n**Step 5: Migrate & Permissions**\nphp artisan migrate\nphp artisan shield:generate --all\n\n**Step 6: Implement Filament UI**\n- Edit app/Filament/Resources/ProductResource.php\n- Add validation in Form Schema\n- Implement business logic in Service if needed"
+        },
+        {
+            "title": "✅ PTSI Coding Standards (Mandatory)",
+            "content": "**Validation:**\n- ✅ Validate in Form Schema (Filament) or Form Request (API)\n- ✅ Service layer accepts validated array data\n- ✅ No validation logic in Service layer\n\n**Database Operations:**\n- ✅ Wrap multi-step operations in DB::transaction()\n- ✅ Use Repository pattern (NO direct Eloquent in Services)\n- ✅ Use lockForUpdate() for critical updates\n- ✅ Implement idempotency for critical operations\n- ✅ Service returns Model (create) or bool (update/delete)\n\n**Security & Audit:**\n- ✅ Use Spatie Activity Log for all important changes\n- ✅ Use Spatie Permission for authorization (can('permission'))\n- ✅ Use Policy for model-level authorization\n- ✅ Validate ALL inputs (Form Schema or Form Request)\n\n**Testing:**\n- ✅ Write PHPUnit tests for all Services\n- ✅ Mock repositories in unit tests\n- ✅ Use RefreshDatabase in feature tests\n\n**Code Quality:**\n- ✅ Run ./vendor/bin/pint before commit\n- ✅ No dd() or dump() in commits\n- ✅ Use type hints everywhere\n- ✅ PHPDoc for public methods"
+        },
+        {
+            "title": "🚫 PTSI Anti-Patterns (NEVER DO)",
+            "content": "**❌ FORBIDDEN:**\n\n1. Business logic in Controllers/Filament Resources\n   → Use Services instead\n\n2. Direct Eloquent queries in Services\n   → Use Repository pattern\n\n3. Framework dependencies in Contracts layer (app/Domain/)\n   → Keep Contracts layer pure PHP\n\n4. Validation in Service layer\n   → Validate in Form Schema (Filament) or Form Request (API)\n\n5. Inline query in Filament Resources\n   → Call Service methods\n\n6. God classes (500+ lines)\n   → Split into smaller classes\n\n7. Magic numbers/strings\n   → Use Enums or Constants\n\n8. Missing service bindings\n   → Always register in DomainServiceProvider\n\n9. Skipping transactions for multi-step operations\n   → Wrap in DB::transaction()\n\n10. Returning Response/Redirect from Services\n    → Return Model or bool, let Controller/Resource handle Response"
+        },
+        {
+            "title": "🎨 PTSI Branding & UI Standards",
+            "content": "**Brand Colors (Already configured):**\n- Primary: #184980 (Dark Blue PTSI)\n- Secondary: #09A8E1 (Sky Blue)\n- Accent: #00B0A8 (Tosca Green)\n- Warning: #FF8939 (Orange)\n- Success: #16A34A\n- Danger: #E11D48\n\n**UI Requirements:**\n- Dark mode enabled by default\n- Font: Geomanist (PTSI standard)\n- Responsive design mandatory\n- Loading states on all actions\n- Confirmation for destructive actions\n- Activity logging for all changes\n\n**Filament Resources:**\n- Use searchable() on key columns\n- Add sortable() where applicable\n- Use badge() for status columns\n- Add bulk actions for admin efficiency\n- Require confirmation for delete/archive"
+        },
+        {
+            "title": "📝 Documentation Requirements",
+            "content": "**Before committing code:**\n\n1. Update CHANGELOG.md with changes\n2. Add PHPDoc blocks to all public methods\n3. Update README.md if adding major features\n4. Keep docs/LARAVEL_BOOST_GUIDE.md as single source of truth\n\n**For new modules:**\n- Document service methods\n- Document DTO properties\n- Add usage examples in comments\n- Update docs/DEVELOPER_WORKFLOW.md if workflow changes\n\n**API Documentation:**\n- Scramble auto-generates from PHPDoc\n- Add @tags for better API docs\n- Document request/response formats"
+        }
+    ]
+}

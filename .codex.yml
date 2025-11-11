@@ -1,0 +1,61 @@
+project:
+  name: PTSI Laravel Filament 4
+  language: php
+  framework: laravel
+  php_version: "8.4"
+  package_managers: [composer, npm]
+
+context:
+  include:
+    - composer.json
+    - composer.lock
+    - pint.json
+    - phpstan.neon
+    - routes/**/*
+    - app/**/*
+    - database/**/*
+    - resources/views/**/*
+    - resources/lang/**/*
+    - config/**/*
+    - tests/**/*
+    - docs/ARCHITECTURE.md
+    - docs/DEVELOPER_WORKFLOW.md
+    - docs/SECURITY_COMPLIANCE_GUIDE.md
+    - docs/LARAVEL_BOOST_GUIDE.md
+  exclude:
+    - storage/**/*
+    - vendor/**/*
+    - node_modules/**/*
+
+review:
+  goals:
+    - Pastikan sesuai Laravel best practices & PSR-12.
+    - Khusus Filament 4: Form/Resource/Relation/Action konsisten & kecil; hindari fat resource.
+    - Gunakan Policy/Authorization yang jelas (Spatie Permission/Filament Shield).
+    - Validasi request jelas (FormRequest atau rule inline wajar).
+    - Hindari query N+1, gunakan eager loading & scopes.
+    - Service/Action separation: controller tipis.
+    - Hindari logika bisnis berat di Livewire/Filament Resource.
+    - Keamanan: mass-assignment, XSS, CSRF, file upload, env leakage.
+  required_checks:
+    - run: vendor/bin/pint --test
+      title: "Laravel Pint (style)"
+    - run: vendor/bin/phpstan analyse --no-progress
+      title: "Larastan (static analysis)"
+    - run: php artisan test --verbose
+      title: "PHPUnit test suite"
+    - run: composer audit || true
+      title: "Composer security audit"
+  severity_map:
+    - pattern: "eval\\(|shell_exec\\(|exec\\("
+      severity: high
+      message: "Hindari exec/eval; gunakan proses terkontrol."
+  pr_comments:
+    inline: true
+    summary: true
+  act:
+    allowed_users: ["horas-siregar", "ptsi-devops"]
+    allow_push: true
+    run_tests_before_push: true
+    commit_message_template: "codex: {summary}"
+
