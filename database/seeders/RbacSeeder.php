@@ -94,7 +94,7 @@ class RbacSeeder extends Seeder
         ];
 
         collect($permissions)->each(
-            fn(string $name) => Permission::query()->updateOrCreate(
+            fn (string $name) => Permission::query()->updateOrCreate(
                 ['name' => $name, 'guard_name' => $guard],
                 ['name' => $name]
             )
