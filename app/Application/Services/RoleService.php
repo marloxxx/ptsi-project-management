@@ -19,6 +19,8 @@ class RoleService implements RoleServiceInterface
 
     /**
      * Get all roles.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, \Spatie\Permission\Models\Role>
      */
     public function all(): Collection
     {
@@ -28,13 +30,16 @@ class RoleService implements RoleServiceInterface
     /**
      * Find role by ID.
      */
-    public function find(int $id): ?Role
+    public function find(int|string $id): ?Role
     {
         return $this->repository->find($id);
     }
 
     /**
      * Create new role with permissions.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array<int, string>|null  $permissions
      */
     public function create(array $data, ?array $permissions = null): Role
     {
@@ -63,6 +68,9 @@ class RoleService implements RoleServiceInterface
 
     /**
      * Update existing role.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array<int, string>|null  $permissions
      */
     public function update(int $id, array $data, ?array $permissions = null): bool
     {
@@ -119,8 +127,10 @@ class RoleService implements RoleServiceInterface
 
     /**
      * Sync permissions to role.
+     *
+     * @param  array<int, string>  $permissions
      */
-    public function syncPermissions(int $roleId, array $permissions): bool
+    public function syncPermissions(int|string $roleId, array $permissions): bool
     {
         return DB::transaction(function () use ($roleId, $permissions) {
             $role = $this->repository->find($roleId);
@@ -148,7 +158,10 @@ class RoleService implements RoleServiceInterface
     /**
      * Sync role permissions (internal helper).
      */
-    private function syncRolePermissions(int $roleId, array $permissions): void
+    /**
+     * @param  array<int, string>  $permissions
+     */
+    private function syncRolePermissions(int|string $roleId, array $permissions): void
     {
         $role = $this->repository->find($roleId);
 

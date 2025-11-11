@@ -11,21 +11,27 @@ interface RoleRepositoryInterface
 {
     /**
      * Get all Role records.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, \Spatie\Permission\Models\Role>
      */
     public function all(): Collection;
 
     /**
-     * Find Role by ID.
+     * Find Role by ID or name.
      */
-    public function find(int $id): ?Role;
+    public function find(int|string $id): ?Role;
 
     /**
      * Create new Role.
+     *
+     * @param  array<string, mixed>  $data
      */
     public function create(array $data): Role;
 
     /**
      * Update Role.
+     *
+     * @param  array<string, mixed>  $data
      */
     public function update(int $id, array $data): bool;
 

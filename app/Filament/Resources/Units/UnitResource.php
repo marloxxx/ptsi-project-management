@@ -15,6 +15,7 @@ use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
@@ -30,6 +31,9 @@ class UnitResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    /**
+     * @return list<string>
+     */
     public static function getPermissionPrefixes(): array
     {
         return [
@@ -68,32 +72,40 @@ class UnitResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return static::canViewAny();
+        return self::canViewAny();
     }
 
     public static function canViewAny(): bool
     {
-        return static::currentUser()?->can('units.view') ?? false;
+        return self::currentUser()?->can('units.view') ?? false;
     }
 
     public static function canCreate(): bool
     {
-        return static::currentUser()?->can('units.create') ?? false;
+        return self::currentUser()?->can('units.create') ?? false;
     }
 
-    public static function canEdit($record): bool
+    public static function canEdit(Model $record): bool
     {
-        return static::currentUser()?->can('update', $record) ?? false;
+        if (! $record instanceof Unit) {
+            return false;
+        }
+
+        return self::currentUser()?->can('update', $record) ?? false;
     }
 
-    public static function canDelete($record): bool
+    public static function canDelete(Model $record): bool
     {
-        return static::currentUser()?->can('delete', $record) ?? false;
+        if (! $record instanceof Unit) {
+            return false;
+        }
+
+        return self::currentUser()?->can('delete', $record) ?? false;
     }
 
     public static function canDeleteAny(): bool
     {
-        return static::currentUser()?->can('units.delete') ?? false;
+        return self::currentUser()?->can('units.delete') ?? false;
     }
 
     public static function getNavigationLabel(): string

@@ -1,0 +1,36 @@
+includes:
+    - vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+    phpVersion: 80300
+
+    paths:
+        - app
+        - database
+        - routes
+        - config
+
+    tmpDir: storage/framework/cache/phpstan
+    level: 7
+
+    treatPhpDocTypesAsCertain: false
+
+    scanDirectories:
+        - app
+        - vendor/laravel/framework
+        - vendor/filament
+        - vendor/livewire
+
+    universalObjectCratesClasses:
+        - Livewire\Component
+        - Illuminate\Contracts\Container\Container
+
+    excludePaths:
+        - vendor
+        - bootstrap
+        - storage
+        - database/factories
+        - database/seeders
+        - public
+
+    reportUnmatchedIgnoredErrors: false

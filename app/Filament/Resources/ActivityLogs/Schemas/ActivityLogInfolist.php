@@ -43,7 +43,7 @@ class ActivityLogInfolist
 
                                         return '-';
                                     })
-                                    ->color(fn($state) => match ($state) {
+                                    ->color(fn ($state) => match ($state) {
                                         'created' => 'success',
                                         'updated' => 'warning',
                                         'deleted' => 'danger',
@@ -70,7 +70,7 @@ class ActivityLogInfolist
                                     }),
                                 TextEntry::make('subject_type')
                                     ->label('Subject Type')
-                                    ->formatStateUsing(fn($state) => $state ? class_basename($state) : '-'),
+                                    ->formatStateUsing(fn ($state) => $state ? class_basename($state) : '-'),
                                 TextEntry::make('subject_id')
                                     ->label('Subject ID')
                                     ->placeholder('-'),

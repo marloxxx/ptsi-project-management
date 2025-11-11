@@ -38,6 +38,7 @@ class Profile extends BreezyProfilePage implements HasForms
 
     protected string $view = 'filament.pages.profile';
 
+    /** @var array<string, mixed>|null */
     public ?array $data = [];
 
     public function mount(): void
