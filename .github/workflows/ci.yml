@@ -55,7 +55,7 @@ jobs:
         run: ./vendor/bin/pint --test
 
       - name: Static Analysis (PHPStan)
-        run: ./vendor/bin/phpstan analyse --no-progress
+        run: ./vendor/bin/phpstan analyse --no-progress --memory-limit=1G app bootstrap config database routes tests
 
       - name: Run Tests
         run: php artisan test --verbose
