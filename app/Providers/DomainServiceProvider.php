@@ -37,6 +37,51 @@ class DomainServiceProvider extends ServiceProvider
             \App\Infrastructure\Repositories\UnitRepository::class
         );
 
+        $this->app->bind(
+            \App\Domain\Repositories\ProjectRepositoryInterface::class,
+            \App\Infrastructure\Repositories\ProjectRepository::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\TicketRepositoryInterface::class,
+            \App\Infrastructure\Repositories\TicketRepository::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\TicketStatusRepositoryInterface::class,
+            \App\Infrastructure\Repositories\TicketStatusRepository::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\TicketPriorityRepositoryInterface::class,
+            \App\Infrastructure\Repositories\TicketPriorityRepository::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\EpicRepositoryInterface::class,
+            \App\Infrastructure\Repositories\EpicRepository::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\ProjectNoteRepositoryInterface::class,
+            \App\Infrastructure\Repositories\ProjectNoteRepository::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\TicketCommentRepositoryInterface::class,
+            \App\Infrastructure\Repositories\TicketCommentRepository::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\TicketHistoryRepositoryInterface::class,
+            \App\Infrastructure\Repositories\TicketHistoryRepository::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\ExternalAccessTokenRepositoryInterface::class,
+            \App\Infrastructure\Repositories\ExternalAccessTokenRepository::class
+        );
+
         // Register Service bindings
         $this->app->bind(
             \App\Domain\Services\RoleServiceInterface::class,
@@ -56,6 +101,16 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Domain\Services\ExternalUserSyncServiceInterface::class,
             \App\Infrastructure\Services\Integrations\SiPortalExternalUserSyncService::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Services\ProjectServiceInterface::class,
+            \App\Application\Services\ProjectService::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Services\TicketServiceInterface::class,
+            \App\Application\Services\TicketService::class
         );
     }
 
