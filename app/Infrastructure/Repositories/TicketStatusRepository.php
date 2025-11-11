@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 class TicketStatusRepository implements TicketStatusRepositoryInterface
 {
+    /**
+     * @return Collection<int, TicketStatus>
+     */
     public function forProject(Project $project): Collection
     {
         return $project->ticketStatuses()
@@ -23,11 +26,20 @@ class TicketStatusRepository implements TicketStatusRepositoryInterface
         return TicketStatus::find($id);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function create(Project $project, array $data): TicketStatus
     {
-        return $project->ticketStatuses()->create($data);
+        /** @var TicketStatus $status */
+        $status = $project->ticketStatuses()->create($data);
+
+        return $status;
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function update(TicketStatus $status, array $data): TicketStatus
     {
         $status->update($data);
@@ -40,6 +52,9 @@ class TicketStatusRepository implements TicketStatusRepositoryInterface
         return (bool) $status->delete();
     }
 
+    /**
+     * @param  array<int, int>  $orderedIds
+     */
     public function reorder(Project $project, array $orderedIds): void
     {
         foreach ($orderedIds as $index => $statusId) {
@@ -49,4 +64,3 @@ class TicketStatusRepository implements TicketStatusRepositoryInterface
         }
     }
 }
-

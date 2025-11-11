@@ -12,10 +12,15 @@ interface ExternalAccessTokenRepositoryInterface
 
     public function findActiveForProject(int $projectId): ?ExternalAccessToken;
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function create(array $data): ExternalAccessToken;
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function update(ExternalAccessToken $token, array $data): ExternalAccessToken;
 
     public function delete(ExternalAccessToken $token): bool;
 }
-

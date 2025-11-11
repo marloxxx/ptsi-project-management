@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TicketPriority extends Model
 {
+    /** @use HasFactory<\Database\Factories\TicketPriorityFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -18,8 +19,14 @@ class TicketPriority extends Model
         'sort_order',
     ];
 
+    /**
+     * @return HasMany<Ticket, TicketPriority>
+     */
     public function tickets(): HasMany
     {
-        return $this->hasMany(Ticket::class, 'priority_id');
+        /** @var HasMany<Ticket, TicketPriority> $relation */
+        $relation = $this->hasMany(Ticket::class, 'priority_id');
+
+        return $relation;
     }
 }

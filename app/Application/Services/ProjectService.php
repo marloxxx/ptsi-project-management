@@ -32,11 +32,20 @@ class ProjectService implements ProjectServiceInterface
         protected ExternalAccessTokenRepositoryInterface $externalAccessTokenRepository
     ) {}
 
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return Collection<int, Project>
+     */
     public function list(array $filters = []): Collection
     {
         return $this->projectRepository->all(Arr::get($filters, 'with', []));
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<int, int>  $memberIds
+     * @param  array<int, array<string, mixed>>  $statusPresets
+     */
     public function create(array $data, array $memberIds = [], array $statusPresets = []): Project
     {
         return DB::transaction(function () use ($data, $memberIds, $statusPresets) {
@@ -53,6 +62,10 @@ class ProjectService implements ProjectServiceInterface
         });
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<int, int>|null  $memberIds
+     */
     public function update(int $projectId, array $data, ?array $memberIds = null): Project
     {
         return DB::transaction(function () use ($projectId, $data, $memberIds) {
@@ -77,6 +90,9 @@ class ProjectService implements ProjectServiceInterface
         });
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function addStatus(int $projectId, array $data): TicketStatus
     {
         $project = $this->findProjectOrFail($projectId);
@@ -90,6 +106,9 @@ class ProjectService implements ProjectServiceInterface
         return $this->ticketStatusRepository->create($project, $statusData);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function updateStatus(int $statusId, array $data): TicketStatus
     {
         $status = $this->findStatusOrFail($statusId);
@@ -108,6 +127,9 @@ class ProjectService implements ProjectServiceInterface
         return $this->ticketStatusRepository->delete($status);
     }
 
+    /**
+     * @param  array<int, int>  $orderedIds
+     */
     public function reorderStatuses(int $projectId, array $orderedIds): void
     {
         $project = $this->findProjectOrFail($projectId);
@@ -115,6 +137,9 @@ class ProjectService implements ProjectServiceInterface
         $this->ticketStatusRepository->reorder($project, array_values($orderedIds));
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function addEpic(int $projectId, array $data): Epic
     {
         $payload = array_merge($data, ['project_id' => $projectId]);
@@ -122,6 +147,9 @@ class ProjectService implements ProjectServiceInterface
         return $this->epicRepository->create($payload);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function updateEpic(int $epicId, array $data): Epic
     {
         $epic = $this->findEpicOrFail($epicId);
@@ -140,6 +168,9 @@ class ProjectService implements ProjectServiceInterface
         return $this->epicRepository->delete($epic);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function addNote(int $projectId, array $data): ProjectNote
     {
         $payload = array_merge($data, [
@@ -149,6 +180,9 @@ class ProjectService implements ProjectServiceInterface
         return $this->projectNoteRepository->create($payload);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function updateNote(int $noteId, array $data): ProjectNote
     {
         $note = $this->findProjectNoteOrFail($noteId);
@@ -251,6 +285,9 @@ class ProjectService implements ProjectServiceInterface
         return $token;
     }
 
+    /**
+     * @param  array<int, array<string, mixed>>  $statusPresets
+     */
     protected function seedStatuses(Project $project, array $statusPresets): void
     {
         $presets = collect($statusPresets ?: $this->defaultStatuses());
@@ -283,6 +320,9 @@ class ProjectService implements ProjectServiceInterface
         return $token;
     }
 
+    /**
+     * @return array<int, array{name: string, color: string, is_completed: bool}>
+     */
     protected function defaultStatuses(): array
     {
         return [
@@ -293,4 +333,3 @@ class ProjectService implements ProjectServiceInterface
         ];
     }
 }
-

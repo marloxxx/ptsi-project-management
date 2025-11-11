@@ -1,56 +1,62 @@
 <?php
 
+namespace Tests\Feature\Services;
+
 use App\Domain\Services\ProjectServiceInterface;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-use function Pest\Laravel\assertDatabaseHas;
+class ProjectServiceTest extends TestCase
+{
+    use RefreshDatabase;
 
-uses(RefreshDatabase::class)->group('services');
+    public function test_project_service_creates_project_with_members_and_default_statuses(): void
+    {
+        /** @var ProjectServiceInterface $service */
+        $service = app(ProjectServiceInterface::class);
 
-test('project service creates project with members and default statuses', function (): void {
-    /** @var ProjectServiceInterface $service */
-    $service = app(ProjectServiceInterface::class);
+        $owner = User::factory()->create();
 
-    $owner = User::factory()->create();
+        $project = $service->create([
+            'name' => 'Migration Pilot',
+            'description' => 'Initial migration project',
+            'ticket_prefix' => 'MIG',
+            'color' => '#184980',
+            'start_date' => now()->toDateString(),
+        ], [$owner->id]);
 
-    $project = $service->create([
-        'name' => 'Migration Pilot',
-        'description' => 'Initial migration project',
-        'ticket_prefix' => 'MIG',
-        'color' => '#184980',
-        'start_date' => now()->toDateString(),
-    ], [$owner->id]);
+        $this->assertInstanceOf(Project::class, $project);
 
-    expect($project)->toBeInstanceOf(Project::class);
+        $this->assertDatabaseHas('projects', [
+            'name' => 'Migration Pilot',
+            'ticket_prefix' => 'MIG',
+        ]);
 
-    assertDatabaseHas('projects', [
-        'name' => 'Migration Pilot',
-        'ticket_prefix' => 'MIG',
-    ]);
+        $this->assertCount(4, $project->ticketStatuses);
+        $this->assertContains($owner->id, $project->members->pluck('id')->all());
+    }
 
-    expect($project->ticketStatuses)->toHaveCount(4);
-    expect($project->members->pluck('id'))->toContain($owner->id);
-});
+    public function test_project_service_generates_external_access_token(): void
+    {
+        /** @var ProjectServiceInterface $service */
+        $service = app(ProjectServiceInterface::class);
 
-test('project service generates external access token', function (): void {
-    /** @var ProjectServiceInterface $service */
-    $service = app(ProjectServiceInterface::class);
+        $project = $service->create([
+            'name' => 'Portal Rollout',
+            'description' => 'External portal rollout',
+            'ticket_prefix' => 'PRT',
+        ]);
 
-    $project = $service->create([
-        'name' => 'Portal Rollout',
-        'description' => 'External portal rollout',
-        'ticket_prefix' => 'PRT',
-    ]);
+        $token = $service->generateExternalAccess($project->id, 'Client Portal');
 
-    $token = $service->generateExternalAccess($project->id, 'Client Portal');
+        $this->assertNotNull($token->plain_password ?? null);
+        $this->assertTrue((bool) $token->is_active);
 
-    expect($token->plain_password ?? null)->not->toBeNull();
-    expect($token->is_active)->toBeTrue();
-
-    assertDatabaseHas('external_access_tokens', [
-        'project_id' => $project->id,
-        'name' => 'Client Portal',
-    ]);
-});
+        $this->assertDatabaseHas('external_access_tokens', [
+            'project_id' => $project->id,
+            'name' => 'Client Portal',
+        ]);
+    }
+}

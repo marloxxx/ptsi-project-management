@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ExternalAccessToken extends Model
 {
+    /** @use HasFactory<\Database\Factories\ExternalAccessTokenFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -26,8 +27,14 @@ class ExternalAccessToken extends Model
         'last_accessed_at' => 'datetime',
     ];
 
+    /**
+     * @return BelongsTo<Project, ExternalAccessToken>
+     */
     public function project(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        /** @var BelongsTo<Project, ExternalAccessToken> $relation */
+        $relation = $this->belongsTo(Project::class);
+
+        return $relation;
     }
 }

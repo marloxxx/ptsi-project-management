@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Project extends Model
 {
+    /** @use HasFactory<\Database\Factories\ProjectFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -30,35 +31,83 @@ class Project extends Model
         'pinned_at' => 'datetime',
     ];
 
+    /**
+     * @return HasMany<TicketStatus>
+     *
+     * @phpstan-return HasMany<TicketStatus, self>
+     */
     public function ticketStatuses(): HasMany
     {
-        return $this->hasMany(TicketStatus::class);
+        /** @var HasMany<TicketStatus, self> $relation */
+        $relation = $this->hasMany(TicketStatus::class);
+
+        return $relation;
     }
 
+    /**
+     * @return HasMany<Ticket>
+     *
+     * @phpstan-return HasMany<Ticket, self>
+     */
     public function tickets(): HasMany
     {
-        return $this->hasMany(Ticket::class);
+        /** @var HasMany<Ticket, self> $relation */
+        $relation = $this->hasMany(Ticket::class);
+
+        return $relation;
     }
 
+    /**
+     * @return HasMany<Epic>
+     *
+     * @phpstan-return HasMany<Epic, self>
+     */
     public function epics(): HasMany
     {
-        return $this->hasMany(Epic::class);
+        /** @var HasMany<Epic, self> $relation */
+        $relation = $this->hasMany(Epic::class);
+
+        return $relation;
     }
 
+    /**
+     * @return HasMany<ProjectNote>
+     *
+     * @phpstan-return HasMany<ProjectNote, self>
+     */
     public function notes(): HasMany
     {
-        return $this->hasMany(ProjectNote::class);
+        /** @var HasMany<ProjectNote, self> $relation */
+        $relation = $this->hasMany(ProjectNote::class);
+
+        return $relation;
     }
 
+    /**
+     * @return HasOne<ExternalAccessToken>
+     *
+     * @phpstan-return HasOne<ExternalAccessToken, self>
+     */
     public function externalAccessToken(): HasOne
     {
-        return $this->hasOne(ExternalAccessToken::class);
+        /** @var HasOne<ExternalAccessToken, self> $relation */
+        $relation = $this->hasOne(ExternalAccessToken::class);
+
+        return $relation;
     }
 
+    /**
+     * @return BelongsToMany<User>
+     *
+     * @phpstan-return BelongsToMany<User, self>
+     */
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'project_members')
+        /** @var BelongsToMany<User, self> $relation */
+        $relation = $this->belongsToMany(User::class, 'project_members')
             ->withTimestamps();
+
+        return $relation;
     }
 
     public function getIsPinnedAttribute(): bool

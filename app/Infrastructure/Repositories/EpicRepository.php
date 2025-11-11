@@ -10,16 +10,25 @@ use Illuminate\Database\Eloquent\Collection;
 
 class EpicRepository implements EpicRepositoryInterface
 {
+    /**
+     * @param  array<int, string>  $relations
+     */
     public function find(int $id, array $relations = []): ?Epic
     {
         return Epic::with($relations)->find($id);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function create(array $data): Epic
     {
         return Epic::create($data);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function update(Epic $epic, array $data): Epic
     {
         $epic->update($data);
@@ -32,6 +41,9 @@ class EpicRepository implements EpicRepositoryInterface
         return (bool) $epic->delete();
     }
 
+    /**
+     * @return Collection<int, Epic>
+     */
     public function forProject(int $projectId): Collection
     {
         return Epic::where('project_id', $projectId)
@@ -39,4 +51,3 @@ class EpicRepository implements EpicRepositoryInterface
             ->get();
     }
 }
-

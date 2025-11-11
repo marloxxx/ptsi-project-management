@@ -9,7 +9,13 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface TicketHistoryRepositoryInterface
 {
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function create(array $data): TicketHistory;
 
+    /**
+     * @return Collection<int, TicketHistory>
+     */
     public function forTicket(int $ticketId): Collection;
 }

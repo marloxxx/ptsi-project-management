@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 class TicketPriorityRepository implements TicketPriorityRepositoryInterface
 {
+    /**
+     * @return Collection<int, TicketPriority>
+     */
     public function all(): Collection
     {
         return TicketPriority::orderBy('sort_order')->get();
@@ -20,11 +23,17 @@ class TicketPriorityRepository implements TicketPriorityRepositoryInterface
         return TicketPriority::find($id);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function create(array $data): TicketPriority
     {
         return TicketPriority::create($data);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function update(TicketPriority $priority, array $data): TicketPriority
     {
         $priority->update($data);
@@ -37,4 +46,3 @@ class TicketPriorityRepository implements TicketPriorityRepositoryInterface
         return (bool) $priority->delete();
     }
 }
-

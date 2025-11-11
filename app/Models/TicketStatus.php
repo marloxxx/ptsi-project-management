@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TicketStatus extends Model
 {
+    /** @use HasFactory<\Database\Factories\TicketStatusFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -25,13 +26,25 @@ class TicketStatus extends Model
         'is_completed' => 'bool',
     ];
 
+    /**
+     * @return BelongsTo<Project, TicketStatus>
+     */
     public function project(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        /** @var BelongsTo<Project, TicketStatus> $relation */
+        $relation = $this->belongsTo(Project::class);
+
+        return $relation;
     }
 
+    /**
+     * @return HasMany<Ticket, TicketStatus>
+     */
     public function tickets(): HasMany
     {
-        return $this->hasMany(Ticket::class);
+        /** @var HasMany<Ticket, TicketStatus> $relation */
+        $relation = $this->hasMany(Ticket::class);
+
+        return $relation;
     }
 }

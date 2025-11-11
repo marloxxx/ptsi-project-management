@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TicketComment extends Model
 {
+    /** @use HasFactory<\Database\Factories\TicketCommentFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -23,14 +24,25 @@ class TicketComment extends Model
         'is_internal' => 'bool',
     ];
 
+    /**
+     * @return BelongsTo<Ticket, TicketComment>
+     */
     public function ticket(): BelongsTo
     {
-        return $this->belongsTo(Ticket::class);
+        /** @var BelongsTo<Ticket, TicketComment> $relation */
+        $relation = $this->belongsTo(Ticket::class);
+
+        return $relation;
     }
 
+    /**
+     * @return BelongsTo<User, TicketComment>
+     */
     public function author(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        /** @var BelongsTo<User, TicketComment> $relation */
+        $relation = $this->belongsTo(User::class, 'user_id');
+
+        return $relation;
     }
 }
-

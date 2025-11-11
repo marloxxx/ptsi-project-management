@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 
 class Ticket extends Model
 {
+    /** @use HasFactory<\Database\Factories\TicketFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -32,6 +33,7 @@ class Ticket extends Model
     protected $casts = [
         'start_date' => 'date',
         'due_date' => 'date',
+        'created_by' => 'integer',
     ];
 
     protected static function booted(): void
@@ -50,50 +52,103 @@ class Ticket extends Model
             }
 
             if (empty($ticket->created_by) && Auth::check()) {
-                $ticket->created_by = Auth::id();
+                $userId = Auth::id();
+
+                if ($userId !== null) {
+                    $ticket->created_by = (int) $userId;
+                }
             }
         });
     }
 
+    /**
+     * @return BelongsTo<Project, Ticket>
+     */
     public function project(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        /** @var BelongsTo<Project, Ticket> $relation */
+        $relation = $this->belongsTo(Project::class);
+
+        return $relation;
     }
 
+    /**
+     * @return BelongsTo<TicketStatus, Ticket>
+     */
     public function status(): BelongsTo
     {
-        return $this->belongsTo(TicketStatus::class, 'ticket_status_id');
+        /** @var BelongsTo<TicketStatus, Ticket> $relation */
+        $relation = $this->belongsTo(TicketStatus::class, 'ticket_status_id');
+
+        return $relation;
     }
 
+    /**
+     * @return BelongsTo<TicketPriority, Ticket>
+     */
     public function priority(): BelongsTo
     {
-        return $this->belongsTo(TicketPriority::class, 'priority_id');
+        /** @var BelongsTo<TicketPriority, Ticket> $relation */
+        $relation = $this->belongsTo(TicketPriority::class, 'priority_id');
+
+        return $relation;
     }
 
+    /**
+     * @return BelongsTo<Epic, Ticket>
+     */
     public function epic(): BelongsTo
     {
-        return $this->belongsTo(Epic::class);
+        /** @var BelongsTo<Epic, Ticket> $relation */
+        $relation = $this->belongsTo(Epic::class);
+
+        return $relation;
     }
 
+    /**
+     * @return BelongsTo<User, Ticket>
+     */
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        /** @var BelongsTo<User, Ticket> $relation */
+        $relation = $this->belongsTo(User::class, 'created_by');
+
+        return $relation;
     }
 
+    /**
+     * @return BelongsToMany<User, Ticket>
+     *
+     * @phpstan-return BelongsToMany<User, Ticket, \Illuminate\Database\Eloquent\Relations\Pivot>
+     */
     public function assignees(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'ticket_users')
+        /** @var BelongsToMany<User, Ticket, \Illuminate\Database\Eloquent\Relations\Pivot> $relation */
+        $relation = $this->belongsToMany(User::class, 'ticket_users')
             ->withTimestamps();
+
+        return $relation;
     }
 
+    /**
+     * @return HasMany<TicketComment, Ticket>
+     */
     public function comments(): HasMany
     {
-        return $this->hasMany(TicketComment::class);
+        /** @var HasMany<TicketComment, Ticket> $relation */
+        $relation = $this->hasMany(TicketComment::class);
+
+        return $relation;
     }
 
+    /**
+     * @return HasMany<TicketHistory, Ticket>
+     */
     public function histories(): HasMany
     {
-        return $this->hasMany(TicketHistory::class);
+        /** @var HasMany<TicketHistory, Ticket> $relation */
+        $relation = $this->hasMany(TicketHistory::class);
+
+        return $relation;
     }
 }
-

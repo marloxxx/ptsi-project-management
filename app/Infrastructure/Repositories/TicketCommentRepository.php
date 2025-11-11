@@ -10,11 +10,17 @@ use Illuminate\Database\Eloquent\Collection;
 
 class TicketCommentRepository implements TicketCommentRepositoryInterface
 {
+    /**
+     * @param  array<int, string>  $relations
+     */
     public function find(int $id, array $relations = []): ?TicketComment
     {
         return TicketComment::with($relations)->find($id);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function create(array $data): TicketComment
     {
         return TicketComment::create($data);
@@ -25,6 +31,9 @@ class TicketCommentRepository implements TicketCommentRepositoryInterface
         return (bool) $comment->delete();
     }
 
+    /**
+     * @return Collection<int, TicketComment>
+     */
     public function forTicket(int $ticketId): Collection
     {
         return TicketComment::where('ticket_id', $ticketId)
@@ -32,4 +41,3 @@ class TicketCommentRepository implements TicketCommentRepositoryInterface
             ->get();
     }
 }
-

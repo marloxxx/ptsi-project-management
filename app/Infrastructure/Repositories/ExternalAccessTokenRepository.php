@@ -21,11 +21,17 @@ class ExternalAccessTokenRepository implements ExternalAccessTokenRepositoryInte
             ->first();
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function create(array $data): ExternalAccessToken
     {
         return ExternalAccessToken::create($data);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function update(ExternalAccessToken $token, array $data): ExternalAccessToken
     {
         $token->update($data);
@@ -38,4 +44,3 @@ class ExternalAccessTokenRepository implements ExternalAccessTokenRepositoryInte
         return (bool) $token->delete();
     }
 }
-

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TicketHistory extends Model
 {
+    /** @use HasFactory<\Database\Factories\TicketHistoryFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -20,23 +21,47 @@ class TicketHistory extends Model
         'note',
     ];
 
+    /**
+     * @return BelongsTo<Ticket, TicketHistory>
+     */
     public function ticket(): BelongsTo
     {
-        return $this->belongsTo(Ticket::class);
+        /** @var BelongsTo<Ticket, TicketHistory> $relation */
+        $relation = $this->belongsTo(Ticket::class);
+
+        return $relation;
     }
 
+    /**
+     * @return BelongsTo<User, TicketHistory>
+     */
     public function actor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        /** @var BelongsTo<User, TicketHistory> $relation */
+        $relation = $this->belongsTo(User::class, 'user_id');
+
+        return $relation;
     }
 
+    /**
+     * @return BelongsTo<TicketStatus, TicketHistory>
+     */
     public function fromStatus(): BelongsTo
     {
-        return $this->belongsTo(TicketStatus::class, 'from_ticket_status_id');
+        /** @var BelongsTo<TicketStatus, TicketHistory> $relation */
+        $relation = $this->belongsTo(TicketStatus::class, 'from_ticket_status_id');
+
+        return $relation;
     }
 
+    /**
+     * @return BelongsTo<TicketStatus, TicketHistory>
+     */
     public function toStatus(): BelongsTo
     {
-        return $this->belongsTo(TicketStatus::class, 'to_ticket_status_id');
+        /** @var BelongsTo<TicketStatus, TicketHistory> $relation */
+        $relation = $this->belongsTo(TicketStatus::class, 'to_ticket_status_id');
+
+        return $relation;
     }
 }

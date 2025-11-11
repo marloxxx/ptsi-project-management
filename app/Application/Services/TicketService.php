@@ -24,6 +24,10 @@ class TicketService implements TicketServiceInterface
         protected TicketCommentRepositoryInterface $ticketCommentRepository
     ) {}
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<int, int>  $assigneeIds
+     */
     public function create(array $data, array $assigneeIds = []): Ticket
     {
         return DB::transaction(function () use ($data, $assigneeIds) {
@@ -45,6 +49,10 @@ class TicketService implements TicketServiceInterface
         });
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<int, int>|null  $assigneeIds
+     */
     public function update(int $ticketId, array $data, ?array $assigneeIds = null): Ticket
     {
         return DB::transaction(function () use ($ticketId, $data, $assigneeIds) {
@@ -105,6 +113,9 @@ class TicketService implements TicketServiceInterface
         });
     }
 
+    /**
+     * @param  array<int, int>  $userIds
+     */
     public function assignUsers(int $ticketId, array $userIds): Ticket
     {
         $ticket = $this->findTicketOrFail($ticketId);
@@ -114,6 +125,9 @@ class TicketService implements TicketServiceInterface
         return $ticket->fresh(['assignees']);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function addComment(int $ticketId, array $data): TicketComment
     {
         $ticket = $this->findTicketOrFail($ticketId);
@@ -163,4 +177,3 @@ class TicketService implements TicketServiceInterface
         ]);
     }
 }
-

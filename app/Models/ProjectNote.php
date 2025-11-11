@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProjectNote extends Model
 {
+    /** @use HasFactory<\Database\Factories\ProjectNoteFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -24,13 +25,25 @@ class ProjectNote extends Model
         'note_date' => 'date',
     ];
 
+    /**
+     * @return BelongsTo<Project, ProjectNote>
+     */
     public function project(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        /** @var BelongsTo<Project, ProjectNote> $relation */
+        $relation = $this->belongsTo(Project::class);
+
+        return $relation;
     }
 
+    /**
+     * @return BelongsTo<User, ProjectNote>
+     */
     public function author(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        /** @var BelongsTo<User, ProjectNote> $relation */
+        $relation = $this->belongsTo(User::class, 'created_by');
+
+        return $relation;
     }
 }

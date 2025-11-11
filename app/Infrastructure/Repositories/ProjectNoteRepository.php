@@ -15,11 +15,17 @@ class ProjectNoteRepository implements ProjectNoteRepositoryInterface
         return ProjectNote::find($id);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function create(array $data): ProjectNote
     {
         return ProjectNote::create($data);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function update(ProjectNote $note, array $data): ProjectNote
     {
         $note->update($data);
@@ -32,6 +38,9 @@ class ProjectNoteRepository implements ProjectNoteRepositoryInterface
         return (bool) $note->delete();
     }
 
+    /**
+     * @return Collection<int, ProjectNote>
+     */
     public function forProject(int $projectId): Collection
     {
         return ProjectNote::where('project_id', $projectId)
@@ -39,4 +48,3 @@ class ProjectNoteRepository implements ProjectNoteRepositoryInterface
             ->get();
     }
 }
-
