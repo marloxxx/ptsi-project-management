@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Projects\RelationManagers;
 use App\Domain\Services\ProjectServiceInterface;
 use App\Models\Project;
 use App\Models\TicketStatus;
+use App\Models\User;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -97,13 +98,13 @@ class TicketStatusesRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->visible(fn (): bool => $this->userCanManageStatuses()),
+                    ->visible(fn (): bool => self::currentUser()?->can('projects.manage-statuses') ?? false),
             ])
             ->recordActions([
                 EditAction::make()
-                    ->visible(fn (): bool => $this->userCanManageStatuses()),
+                    ->visible(fn (): bool => self::currentUser()?->can('projects.manage-statuses') ?? false),
                 DeleteAction::make()
-                    ->visible(fn (): bool => $this->userCanManageStatuses())
+                    ->visible(fn (): bool => self::currentUser()?->can('projects.manage-statuses') ?? false)
                     ->requiresConfirmation(),
             ])
             ->emptyStateHeading('No ticket statuses configured')
@@ -170,8 +171,13 @@ class TicketStatusesRelationManager extends RelationManager
         return (int) $project->getKey();
     }
 
-    private function userCanManageStatuses(): bool
+    /**
+     * Get the current user.
+     */
+    private function currentUser(): ?User
     {
-        return Auth::user()?->can('projects.manage-statuses') ?? false;
+        $user = Auth::user();
+
+        return $user instanceof User ? $user : null;
     }
 }

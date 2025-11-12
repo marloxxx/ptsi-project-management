@@ -87,20 +87,14 @@ class UnitResource extends Resource
 
     public static function canEdit(Model $record): bool
     {
-        if (! $record instanceof Unit) {
-            return false;
-        }
-
-        return self::currentUser()?->can('update', $record) ?? false;
+        /** @var Unit $record */
+        return self::currentUser()?->can('units.update', $record) ?? false;
     }
 
     public static function canDelete(Model $record): bool
     {
-        if (! $record instanceof Unit) {
-            return false;
-        }
-
-        return self::currentUser()?->can('delete', $record) ?? false;
+        /** @var Unit $record */
+        return self::currentUser()?->can('units.delete', $record) ?? false;
     }
 
     public static function canDeleteAny(): bool
@@ -128,6 +122,9 @@ class UnitResource extends Resource
         return (string) static::getModel()::count();
     }
 
+    /**
+     * Get the current user.
+     */
     private static function currentUser(): ?User
     {
         $user = Auth::user();
