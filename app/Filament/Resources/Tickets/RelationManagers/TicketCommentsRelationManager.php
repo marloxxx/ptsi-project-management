@@ -44,22 +44,22 @@ class TicketCommentsRelationManager extends RelationManager
             Section::make('Comment Details')->schema([
                 Textarea::make('body')->label('Comment')->required()->rows(6)->columnSpanFull()->placeholder('Enter your comment...'),
                 Checkbox::make('is_internal')->label('Internal Comment')->helperText('Internal comments are only visible to team members.')->default(false),
-                Select::make('user_id')->label('Author')->native(false)->searchable()->preload()->options(fn(): array => User::query()->orderBy('name')->pluck('name', 'id')->toArray())->helperText('Defaults to the current user when left empty.'),
+                Select::make('user_id')->label('Author')->native(false)->searchable()->preload()->options(fn (): array => User::query()->orderBy('name')->pluck('name', 'id')->toArray())->helperText('Defaults to the current user when left empty.'),
             ])->columnSpanFull(),
         ]);
     }
 
     public function table(Table $table): Table
     {
-        return $table->recordTitleAttribute('body')->heading('Comments')->modifyQueryUsing(fn(Builder $query): Builder => $query->orderByDesc('created_at'))->columns([
+        return $table->recordTitleAttribute('body')->heading('Comments')->modifyQueryUsing(fn (Builder $query): Builder => $query->orderByDesc('created_at'))->columns([
             TextColumn::make('author.name')->label('Author')->badge()->color('primary')->placeholder('-'),
             TextColumn::make('body')->label('Comment')->limit(100)->wrap()->searchable(),
-            TextColumn::make('is_internal')->label('Type')->badge()->color(fn(TicketComment $record): string => $record->is_internal ? 'warning' : 'success')->formatStateUsing(fn(TicketComment $record): string => $record->is_internal ? 'Internal' : 'Public'),
+            TextColumn::make('is_internal')->label('Type')->badge()->color(fn (TicketComment $record): string => $record->is_internal ? 'warning' : 'success')->formatStateUsing(fn (TicketComment $record): string => $record->is_internal ? 'Internal' : 'Public'),
             TextColumn::make('created_at')->label('Created')->dateTime('M d, Y \a\t H:i')->sortable(),
-        ])->headerActions([CreateAction::make()->visible(fn(): bool => $this->currentUser()?->can('tickets.comment') ?? false)])->recordActions([
-            ViewAction::make()->visible(fn(): bool => $this->currentUser()?->can('tickets.view') ?? false),
-            EditAction::make()->visible(fn(): bool => $this->currentUser()?->can('tickets.comment') ?? false),
-            DeleteAction::make()->visible(fn(): bool => $this->currentUser()?->can('tickets.comment') ?? false)->requiresConfirmation(),
+        ])->headerActions([CreateAction::make()->visible(fn (): bool => $this->currentUser()?->can('tickets.comment') ?? false)])->recordActions([
+            ViewAction::make()->visible(fn (): bool => $this->currentUser()?->can('tickets.view') ?? false),
+            EditAction::make()->visible(fn (): bool => $this->currentUser()?->can('tickets.comment') ?? false),
+            DeleteAction::make()->visible(fn (): bool => $this->currentUser()?->can('tickets.comment') ?? false)->requiresConfirmation(),
         ])->emptyStateHeading('No comments yet')->emptyStateDescription('Add comments to track progress and communicate with the team.');
     }
 
