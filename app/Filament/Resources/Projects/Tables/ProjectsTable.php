@@ -23,7 +23,7 @@ class ProjectsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query
+            ->modifyQueryUsing(fn(Builder $query): Builder => $query
                 ->withCount(['members', 'ticketStatuses'])
                 ->with('members'))
             ->columns([
@@ -37,13 +37,13 @@ class ProjectsTable
                     ->label('Prefix')
                     ->sortable()
                     ->searchable()
-                    ->tooltip(fn (Project $record): string => $record->ticket_prefix),
+                    ->tooltip(fn(Project $record): string => $record->ticket_prefix),
 
                 TextColumn::make('color')
                     ->label('Color')
                     ->badge()
                     ->color('info')
-                    ->formatStateUsing(fn (?string $state): ?string => $state),
+                    ->formatStateUsing(fn(?string $state): ?string => $state),
 
                 TextColumn::make('start_date')
                     ->label('Start')
@@ -89,19 +89,19 @@ class ProjectsTable
                 Action::make('view')
                     ->label('View')
                     ->icon(Heroicon::OutlinedEye)
-                    ->visible(fn (): bool => self::currentUser()?->can('projects.view') ?? false)
-                    ->url(fn (Project $record): string => ProjectResource::getUrl('view', ['record' => $record])),
+                    ->visible(fn(): bool => self::currentUser()?->can('projects.view') ?? false)
+                    ->url(fn(Project $record): string => ProjectResource::getUrl('view', ['record' => $record])),
                 Action::make('edit')
                     ->label('Edit')
                     ->icon(Heroicon::OutlinedPencilSquare)
-                    ->visible(fn (): bool => self::currentUser()?->can('projects.update') ?? false)
-                    ->url(fn (Project $record): string => ProjectResource::getUrl('edit', ['record' => $record])),
+                    ->visible(fn(): bool => self::currentUser()?->can('projects.update') ?? false)
+                    ->url(fn(Project $record): string => ProjectResource::getUrl('edit', ['record' => $record])),
                 Action::make('delete')
                     ->label('Delete')
                     ->icon(Heroicon::OutlinedTrash)
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn (): bool => self::currentUser()?->can('projects.delete') ?? false)
+                    ->visible(fn(): bool => self::currentUser()?->can('projects.delete') ?? false)
                     ->action(function (Project $record, ProjectServiceInterface $projectService): void {
                         $projectService->delete((int) $record->getKey());
                     }),
@@ -112,10 +112,10 @@ class ProjectsTable
                     ->icon(Heroicon::OutlinedTrash)
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn (): bool => self::currentUser()?->can('projects.delete') ?? false)
+                    ->visible(fn(): bool => self::currentUser()?->can('projects.delete') ?? false)
                     ->action(function (Collection $records, ProjectServiceInterface $projectService): void {
                         $records->each(
-                            fn (Project $project): bool => $projectService->delete((int) $project->getKey())
+                            fn(Project $project): bool => $projectService->delete((int) $project->getKey())
                         );
                     }),
             ])

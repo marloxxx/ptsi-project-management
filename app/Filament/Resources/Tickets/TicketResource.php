@@ -138,6 +138,9 @@ class TicketResource extends Resource
             ->with(['project', 'status', 'priority', 'epic', 'creator', 'assignees']);
     }
 
+    /**
+     * Get the current user.
+     */
     private static function currentUser(): ?User
     {
         $user = Auth::user();

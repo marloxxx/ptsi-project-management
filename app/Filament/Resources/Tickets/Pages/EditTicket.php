@@ -54,9 +54,7 @@ class EditTicket extends EditRecord
 
     protected function handleRecordDeletion(Model $record): void
     {
-        if (! $record instanceof Ticket) {
-            throw new InvalidArgumentException('Expected Ticket model.');
-        }
+        /** @var Ticket $record */
         $this->ticketService->delete((int) $record->getKey());
     }
 }

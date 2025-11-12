@@ -52,20 +52,14 @@ class UserResource extends Resource
 
     public static function canEdit(Model $record): bool
     {
-        if (! $record instanceof User) {
-            return false;
-        }
-
-        return self::currentUser()?->can('update', $record) ?? false;
+        /** @var User $record */
+        return $record instanceof User ? self::currentUser()?->can('update', $record) ?? false : false;
     }
 
     public static function canDelete(Model $record): bool
     {
-        if (! $record instanceof User) {
-            return false;
-        }
-
-        return self::currentUser()?->can('delete', $record) ?? false;
+        /** @var User $record */
+        return $record instanceof User ? self::currentUser()?->can('delete', $record) ?? false : false;
     }
 
     public static function canDeleteAny(): bool
@@ -75,30 +69,14 @@ class UserResource extends Resource
 
     public static function canForceDelete(Model $record): bool
     {
-        if (! $record instanceof User) {
-            return false;
-        }
-
-        return self::currentUser()?->can('users.force-delete') ?? false;
-    }
-
-    public static function canForceDeleteAny(): bool
-    {
-        return self::currentUser()?->can('users.force-delete') ?? false;
+        /** @var User $record */
+        return $record instanceof User ? self::currentUser()?->can('users.force-delete') ?? false : false;
     }
 
     public static function canRestore(Model $record): bool
     {
-        if (! $record instanceof User) {
-            return false;
-        }
-
-        return self::currentUser()?->can('users.restore') ?? false;
-    }
-
-    public static function canRestoreAny(): bool
-    {
-        return self::currentUser()?->can('users.restore') ?? false;
+        /** @var User $record */
+        return $record instanceof User ? self::currentUser()?->can('users.restore') ?? false : false;
     }
 
     public static function form(Schema $schema): Schema
@@ -164,6 +142,9 @@ class UserResource extends Resource
         return (string) static::getModel()::count();
     }
 
+    /**
+     * Get the current user.
+     */
     private static function currentUser(): ?User
     {
         $user = Auth::user();

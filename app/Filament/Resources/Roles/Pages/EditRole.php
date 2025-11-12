@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Roles\Pages;
 
 use App\Domain\Services\RoleServiceInterface;
 use App\Filament\Resources\Roles\RoleResource;
+use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\Width;
@@ -28,7 +29,7 @@ class EditRole extends EditRecord
     {
         return [
             DeleteAction::make()
-                ->authorize(fn (): bool => Auth::user()?->can('roles.delete') ?? false)
+                ->authorize(fn(): bool => self::currentUser()?->can('roles.delete') ?? false)
                 ->requiresConfirmation(),
         ];
     }
@@ -57,10 +58,7 @@ class EditRole extends EditRecord
      */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        if (! $record instanceof Role) {
-            throw new \InvalidArgumentException('Expected Role model.');
-        }
-
+        /** @var Role $record */
         $permissions = isset($data['permissions']) ? array_map('strval', (array) $data['permissions']) : null;
         unset($data['permissions']);
 
@@ -71,10 +69,17 @@ class EditRole extends EditRecord
 
     protected function handleRecordDeletion(Model $record): void
     {
-        if (! $record instanceof Role) {
-            throw new \InvalidArgumentException('Expected Role model.');
-        }
-
+        /** @var Role $record */
         $this->roleService->delete((int) $record->getKey());
+    }
+
+    /**
+     * Get the current user.
+     */
+    private static function currentUser(): ?User
+    {
+        $user = Auth::user();
+
+        return $user instanceof User ? $user : null;
     }
 }
