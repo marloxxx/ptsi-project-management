@@ -56,10 +56,10 @@ class TicketCommentsRelationManager extends RelationManager
             TextColumn::make('body')->label('Comment')->limit(100)->wrap()->searchable(),
             TextColumn::make('is_internal')->label('Type')->badge()->color(fn (TicketComment $record): string => $record->is_internal ? 'warning' : 'success')->formatStateUsing(fn (TicketComment $record): string => $record->is_internal ? 'Internal' : 'Public'),
             TextColumn::make('created_at')->label('Created')->dateTime('M d, Y \a\t H:i')->sortable(),
-        ])->headerActions([CreateAction::make()->visible(fn (): bool => $this->userCan('tickets.comment'))])->recordActions([
-            ViewAction::make()->visible(fn (): bool => $this->userCan('tickets.view')),
-            EditAction::make()->visible(fn (): bool => $this->userCan('tickets.comment')),
-            DeleteAction::make()->visible(fn (): bool => $this->userCan('tickets.comment'))->requiresConfirmation(),
+        ])->headerActions([CreateAction::make()->visible(fn (): bool => self::currentUser()?->can('tickets.comment') ?? false)])->recordActions([
+            ViewAction::make()->visible(fn (): bool => self::currentUser()?->can('tickets.view') ?? false),
+            EditAction::make()->visible(fn (): bool => self::currentUser()?->can('tickets.comment') ?? false),
+            DeleteAction::make()->visible(fn (): bool => self::currentUser()?->can('tickets.comment') ?? false)->requiresConfirmation(),
         ])->emptyStateHeading('No comments yet')->emptyStateDescription('Add comments to track progress and communicate with the team.');
     }
 
@@ -102,8 +102,10 @@ class TicketCommentsRelationManager extends RelationManager
         return (int) $ticket->getKey();
     }
 
-    private function userCan(string $permission): bool
+    private static function currentUser(): ?User
     {
-        return Auth::user()?->can($permission) ?? false;
+        $user = Auth::user();
+
+        return $user instanceof User ? $user : null;
     }
 }
