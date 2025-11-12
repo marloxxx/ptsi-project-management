@@ -98,7 +98,7 @@ This plan tracks how features from the DewaKoding Project Management system will
   - Restore email notifications, queue processing, and external client dashboard.
 - **Tasks**
   - [x] Port mail templates and notification dispatch logic to starter kit services.
-  - [ ] Configure queue worker documentation and Supervisor sample under PTSI ops.
+  - [x] Configure queue worker documentation and Supervisor sample under PTSI ops.
   - [x] Integrate `ExternalLogin` and `ExternalDashboard` Livewire components with PTSI layouts.
 - **Testing**
   - [x] Notification tests (queue dispatch assertions) and external portal route/component tests.
