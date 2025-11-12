@@ -12,14 +12,23 @@ class ProjectServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    private ProjectServiceInterface $service;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        /** @var ProjectServiceInterface $service */
+        $service = $this->app->make(ProjectServiceInterface::class);
+        $this->service = $service;
+    }
+
     public function test_project_service_creates_project_with_members_and_default_statuses(): void
     {
-        /** @var ProjectServiceInterface $service */
-        $service = app(ProjectServiceInterface::class);
 
         $owner = User::factory()->create();
 
-        $project = $service->create([
+        $project = $this->service->create([
             'name' => 'Migration Pilot',
             'description' => 'Initial migration project',
             'ticket_prefix' => 'MIG',
@@ -40,16 +49,13 @@ class ProjectServiceTest extends TestCase
 
     public function test_project_service_generates_external_access_token(): void
     {
-        /** @var ProjectServiceInterface $service */
-        $service = app(ProjectServiceInterface::class);
-
-        $project = $service->create([
+        $project = $this->service->create([
             'name' => 'Portal Rollout',
             'description' => 'External portal rollout',
             'ticket_prefix' => 'PRT',
         ]);
 
-        $token = $service->generateExternalAccess($project->id, 'Client Portal');
+        $token = $this->service->generateExternalAccess($project->id, 'Client Portal');
 
         $this->assertNotNull($token->plain_password ?? null);
         $this->assertTrue((bool) $token->is_active);
