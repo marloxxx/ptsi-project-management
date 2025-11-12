@@ -13,7 +13,6 @@ use Filament\Actions\RestoreAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 use STS\FilamentImpersonate\Actions\Impersonate;
 
 class EditUser extends EditRecord
@@ -50,20 +49,20 @@ class EditUser extends EditRecord
 
         return [
             ViewAction::make()
-                ->authorize(fn (): bool => Auth::user()?->can('view', $record) ?? false),
+                ->authorize(fn (): bool => self::currentUser()?->can('view', $record) ?? false),
             Impersonate::make()
                 ->record($record)
-                ->visible(fn (): bool => Auth::user()?->can('users.view') ?? false),
+                ->visible(fn (): bool => self::currentUser()?->can('users.view') ?? false),
             DeleteAction::make()
-                ->authorize(fn (): bool => Auth::user()?->can('delete', $record) ?? false)
+                ->authorize(fn (): bool => self::currentUser()?->can('delete', $record) ?? false)
                 ->requiresConfirmation()
                 ->action(fn () => $this->userService->delete((int) $record->getKey())),
             ForceDeleteAction::make()
-                ->authorize(fn (): bool => Auth::user()?->can('users.force-delete') ?? false)
+                ->authorize(fn (): bool => self::currentUser()?->can('users.force-delete') ?? false)
                 ->requiresConfirmation()
                 ->action(fn () => $this->userService->forceDelete((int) $record->getKey())),
             RestoreAction::make()
-                ->authorize(fn (): bool => Auth::user()?->can('users.restore') ?? false)
+                ->authorize(fn (): bool => self::currentUser()?->can('users.restore') ?? false)
                 ->visible(fn () => $record->trashed())
                 ->action(fn () => $this->userService->restore((int) $record->getKey())),
         ];
