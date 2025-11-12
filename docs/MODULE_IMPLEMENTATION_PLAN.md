@@ -68,8 +68,8 @@ This plan tracks how features from the DewaKoding Project Management system will
   - Manage tickets, priorities, statuses, history, and multi-assignee workflow.
 - **Tasks**
   - [x] Implement ticket service (creation, assignment, status transitions, history entries).
-  - [ ] Port comments Livewire component and integrate with Filament relation managers.
-  - [ ] Configure exports/imports (Excel) and unique ticket identifier generator.
+  - [x] Port comments Livewire component and integrate with Filament relation managers.
+  - [x] Configure exports/imports (Excel) and unique ticket identifier generator.
 - **Testing**
   - [ ] Feature tests for ticket creation, assignment, status updates, and history tracking.
   - [ ] Tests for Excel import/export commands.
