@@ -57,7 +57,7 @@ class ProjectNotesRelationManager extends RelationManager
                         ->native(false)
                         ->searchable()
                         ->preload()
-                        ->options(fn(): array => User::query()
+                        ->options(fn (): array => User::query()
                             ->orderBy('name')
                             ->pluck('name', 'id')
                             ->toArray())
@@ -78,7 +78,7 @@ class ProjectNotesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('title')
             ->heading('Project Notes')
-            ->modifyQueryUsing(fn(Builder $query): Builder => $query->orderByDesc('note_date'))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->orderByDesc('note_date'))
             ->columns([
                 TextColumn::make('title')
                     ->label('Title')
@@ -98,15 +98,15 @@ class ProjectNotesRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->visible(fn(): bool => self::currentUser()?->can('project-notes.create') ?? false),
+                    ->visible(fn (): bool => self::currentUser()?->can('project-notes.create') ?? false),
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->visible(fn(): bool => self::currentUser()?->can('project-notes.view') ?? false),
+                    ->visible(fn (): bool => self::currentUser()?->can('project-notes.view') ?? false),
                 EditAction::make()
-                    ->visible(fn(): bool => self::currentUser()?->can('project-notes.update') ?? false),
+                    ->visible(fn (): bool => self::currentUser()?->can('project-notes.update') ?? false),
                 DeleteAction::make()
-                    ->visible(fn(): bool => self::currentUser()?->can('project-notes.delete') ?? false)
+                    ->visible(fn (): bool => self::currentUser()?->can('project-notes.delete') ?? false)
                     ->requiresConfirmation(),
             ])
             ->emptyStateHeading('No notes yet')

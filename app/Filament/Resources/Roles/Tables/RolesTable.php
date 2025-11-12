@@ -26,7 +26,7 @@ class RolesTable
             ->columns([
                 TextColumn::make('name')
                     ->label('Role Name')
-                    ->formatStateUsing(fn($state): string => Str::headline($state))
+                    ->formatStateUsing(fn ($state): string => Str::headline($state))
                     ->searchable()
                     ->sortable()
                     ->weight('font-medium'),
@@ -68,22 +68,22 @@ class RolesTable
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->authorize(fn(Role $record): bool => self::currentUser()?->can('view', $record) ?? false),
+                    ->authorize(fn (Role $record): bool => self::currentUser()?->can('view', $record) ?? false),
                 EditAction::make()
-                    ->authorize(fn(Role $record): bool => self::currentUser()?->can('update', $record) ?? false),
+                    ->authorize(fn (Role $record): bool => self::currentUser()?->can('update', $record) ?? false),
                 DeleteAction::make()
                     ->requiresConfirmation()
-                    ->authorize(fn(Role $record): bool => self::currentUser()?->can('delete', $record) ?? false)
-                    ->action(fn(Role $record, RoleServiceInterface $roleService) => $roleService->delete((int) $record->getKey())),
+                    ->authorize(fn (Role $record): bool => self::currentUser()?->can('delete', $record) ?? false)
+                    ->action(fn (Role $record, RoleServiceInterface $roleService) => $roleService->delete((int) $record->getKey())),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
                         ->requiresConfirmation()
-                        ->authorize(fn(): bool => self::currentUser()?->can('roles.delete') ?? false)
+                        ->authorize(fn (): bool => self::currentUser()?->can('roles.delete') ?? false)
                         ->action(
-                            fn(Collection $records, RoleServiceInterface $roleService) => $records->each(
-                                fn(Role $role) => $roleService->delete((int) $role->getKey())
+                            fn (Collection $records, RoleServiceInterface $roleService) => $records->each(
+                                fn (Role $role) => $roleService->delete((int) $role->getKey())
                             )
                         ),
                 ]),

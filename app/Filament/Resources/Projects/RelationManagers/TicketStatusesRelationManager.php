@@ -79,7 +79,7 @@ class TicketStatusesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->heading('Ticket Statuses')
-            ->modifyQueryUsing(fn(Builder $query): Builder => $query->orderBy('sort_order'))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->orderBy('sort_order'))
             ->columns([
                 TextColumn::make('name')
                     ->label('Status')
@@ -98,13 +98,13 @@ class TicketStatusesRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->visible(fn(): bool => self::currentUser()?->can('projects.manage-statuses') ?? false),
+                    ->visible(fn (): bool => self::currentUser()?->can('projects.manage-statuses') ?? false),
             ])
             ->recordActions([
                 EditAction::make()
-                    ->visible(fn(): bool => self::currentUser()?->can('projects.manage-statuses') ?? false),
+                    ->visible(fn (): bool => self::currentUser()?->can('projects.manage-statuses') ?? false),
                 DeleteAction::make()
-                    ->visible(fn(): bool => self::currentUser()?->can('projects.manage-statuses') ?? false)
+                    ->visible(fn (): bool => self::currentUser()?->can('projects.manage-statuses') ?? false)
                     ->requiresConfirmation(),
             ])
             ->emptyStateHeading('No ticket statuses configured')

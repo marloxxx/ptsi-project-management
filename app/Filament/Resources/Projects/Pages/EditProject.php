@@ -32,7 +32,7 @@ class EditProject extends EditRecord
     {
         return [
             DeleteAction::make()
-                ->visible(fn(): bool => static::getResource()::canDelete($this->record))
+                ->visible(fn (): bool => static::getResource()::canDelete($this->record))
                 ->requiresConfirmation(),
         ];
     }
@@ -45,7 +45,7 @@ class EditProject extends EditRecord
         $record->loadMissing('members');
         $data['member_ids'] = $record->members
             ->pluck('id')
-            ->map(fn($id): int => (int) $id)
+            ->map(fn ($id): int => (int) $id)
             ->all();
 
         return $data;
@@ -64,10 +64,10 @@ class EditProject extends EditRecord
 
             /** @var array<int, int> $memberIds */
             $memberIds = array_values(array_map(
-                static fn($id): int => (int) $id,
+                static fn ($id): int => (int) $id,
                 array_filter(
                     $memberIdsInput,
-                    static fn($id): bool => $id !== null && $id !== ''
+                    static fn ($id): bool => $id !== null && $id !== ''
                 )
             ));
         }

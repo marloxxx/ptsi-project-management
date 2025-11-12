@@ -126,7 +126,7 @@ class ProjectBoard extends Page
 
         return $this->projects
             ->filter(
-                fn(Project $project): bool => Str::contains(Str::lower($project->name), $needle)
+                fn (Project $project): bool => Str::contains(Str::lower($project->name), $needle)
                     || Str::contains(Str::lower((string) $project->ticket_prefix), $needle)
             )
             ->values();
@@ -301,8 +301,8 @@ class ProjectBoard extends Page
         return match ($sortOrder) {
             'date_created_oldest' => $tickets->sortBy('created_at'),
             'card_name_alphabetical' => $tickets->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE),
-            'due_date' => $tickets->sortBy(fn(Ticket $ticket) => $ticket->due_date?->format('Y-m-d') ?? '9999-12-31'),
-            'priority' => $tickets->sortBy(fn(Ticket $ticket) => $ticket->priority?->getKey() ?? PHP_INT_MAX),
+            'due_date' => $tickets->sortBy(fn (Ticket $ticket) => $ticket->due_date?->format('Y-m-d') ?? '9999-12-31'),
+            'priority' => $tickets->sortBy(fn (Ticket $ticket) => $ticket->priority?->getKey() ?? PHP_INT_MAX),
             default => $tickets->sortByDesc('created_at'),
         };
     }
@@ -313,8 +313,8 @@ class ProjectBoard extends Page
             Action::make('new_ticket')
                 ->label('New Ticket')
                 ->icon('heroicon-m-plus')
-                ->visible(fn(): bool => $this->selectedProject !== null && (self::currentUser()?->can('tickets.create') ?? false))
-                ->url(fn(): string => TicketResource::getUrl('create', [
+                ->visible(fn (): bool => $this->selectedProject !== null && (self::currentUser()?->can('tickets.create') ?? false))
+                ->url(fn (): string => TicketResource::getUrl('create', [
                     'project_id' => $this->selectedProject?->getKey(),
                     'ticket_status_id' => $this->ticketStatuses->first()?->getKey(),
                 ]))
@@ -327,11 +327,11 @@ class ProjectBoard extends Page
             Action::make('filter_users')
                 ->label('Filter by Member')
                 ->icon('heroicon-m-user-group')
-                ->visible(fn(): bool => $this->selectedProject !== null && $this->projectUsers->isNotEmpty())
+                ->visible(fn (): bool => $this->selectedProject !== null && $this->projectUsers->isNotEmpty())
                 ->schema([
                     CheckboxList::make('selectedUserIds')
                         ->label('Members')
-                        ->options(fn(): array => $this->projectUsers->pluck('name', 'id')->toArray())
+                        ->options(fn (): array => $this->projectUsers->pluck('name', 'id')->toArray())
                         ->columns(2)
                         ->bulkToggleable()
                         ->searchable(),
@@ -346,8 +346,8 @@ class ProjectBoard extends Page
                     $ids = $data['selectedUserIds'] ?? [];
                     $this->selectedUserIds = array_values(
                         array_filter(
-                            array_map(static fn($value): int => (int) $value, $ids ?? []),
-                            static fn(int $id): bool => $id > 0
+                            array_map(static fn ($value): int => (int) $value, $ids ?? []),
+                            static fn (int $id): bool => $id > 0
                         )
                     );
 

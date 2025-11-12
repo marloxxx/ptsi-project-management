@@ -81,7 +81,7 @@ class EpicsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->heading('Epics')
-            ->modifyQueryUsing(fn(Builder $query): Builder => $query->orderBy('sort_order'))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->orderBy('sort_order'))
             ->columns([
                 TextColumn::make('name')
                     ->label('Epic')
@@ -108,15 +108,15 @@ class EpicsRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->visible(fn(): bool => $this->currentUser()?->can('epics.create') ?? false),
+                    ->visible(fn (): bool => $this->currentUser()?->can('epics.create') ?? false),
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->visible(fn(): bool => $this->currentUser()?->can('epics.view') ?? false),
+                    ->visible(fn (): bool => $this->currentUser()?->can('epics.view') ?? false),
                 EditAction::make()
-                    ->visible(fn(): bool => $this->currentUser()?->can('epics.update') ?? false),
+                    ->visible(fn (): bool => $this->currentUser()?->can('epics.update') ?? false),
                 DeleteAction::make()
-                    ->visible(fn(): bool => $this->currentUser()?->can('epics.delete') ?? false)
+                    ->visible(fn (): bool => $this->currentUser()?->can('epics.delete') ?? false)
                     ->requiresConfirmation(),
             ])
             ->emptyStateHeading('No epics yet')

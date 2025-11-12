@@ -43,8 +43,8 @@ class UnitsTable
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->color(fn(string $state): string => $state === 'active' ? 'success' : 'danger')
-                    ->formatStateUsing(fn(string $state): string => $state === 'active' ? 'Aktif' : 'Nonaktif')
+                    ->color(fn (string $state): string => $state === 'active' ? 'success' : 'danger')
+                    ->formatStateUsing(fn (string $state): string => $state === 'active' ? 'Aktif' : 'Nonaktif')
                     ->sortable(),
 
                 TextColumn::make('users_count')
@@ -71,21 +71,21 @@ class UnitsTable
             ->recordTitleAttribute('name')
             ->recordActions([
                 EditAction::make()
-                    ->authorize(fn(Unit $record): bool => self::currentUser()?->can('update', $record) ?? false),
+                    ->authorize(fn (Unit $record): bool => self::currentUser()?->can('update', $record) ?? false),
                 DeleteAction::make()
                     ->requiresConfirmation()
-                    ->authorize(fn(Unit $record): bool => self::currentUser()?->can('delete', $record) ?? false)
-                    ->action(fn(Unit $record, UnitServiceInterface $unitService) => $unitService->delete($record))
+                    ->authorize(fn (Unit $record): bool => self::currentUser()?->can('delete', $record) ?? false)
+                    ->action(fn (Unit $record, UnitServiceInterface $unitService) => $unitService->delete($record))
                     ->successNotificationTitle('Unit deleted'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
                         ->requiresConfirmation()
-                        ->authorize(fn(): bool => self::currentUser()?->can('units.delete') ?? false)
+                        ->authorize(fn (): bool => self::currentUser()?->can('units.delete') ?? false)
                         ->action(
-                            fn(Collection $records, UnitServiceInterface $unitService) => $records->each(
-                                fn(Unit $unit) => $unitService->delete($unit)
+                            fn (Collection $records, UnitServiceInterface $unitService) => $records->each(
+                                fn (Unit $unit) => $unitService->delete($unit)
                             )
                         ),
                 ]),

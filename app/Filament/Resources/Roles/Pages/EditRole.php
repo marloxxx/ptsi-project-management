@@ -29,7 +29,7 @@ class EditRole extends EditRecord
     {
         return [
             DeleteAction::make()
-                ->authorize(fn(): bool => self::currentUser()?->can('roles.delete') ?? false)
+                ->authorize(fn (): bool => self::currentUser()?->can('roles.delete') ?? false)
                 ->requiresConfirmation(),
         ];
     }
