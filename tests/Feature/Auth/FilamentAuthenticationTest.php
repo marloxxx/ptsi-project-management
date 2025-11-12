@@ -17,7 +17,7 @@ class FilamentAuthenticationTest extends TestCase
     {
         parent::setUp();
 
-        config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+        config(['app.key' => 'base64:' . base64_encode(random_bytes(32))]);
 
         /** @var RbacSeeder $seeder */
         $seeder = $this->app->make(RbacSeeder::class);
@@ -33,7 +33,9 @@ class FilamentAuthenticationTest extends TestCase
 
     public function test_authenticated_admin_can_access_dashboard(): void
     {
-        $admin = User::factory()->create();
+        $admin = User::factory()->create([
+            'phone' => '081234567890',
+        ]);
         $admin->assignRole('admin');
 
         $this->actingAs($admin);
@@ -46,7 +48,9 @@ class FilamentAuthenticationTest extends TestCase
 
     public function test_profile_page_displays_two_factor_controls(): void
     {
-        $admin = User::factory()->create();
+        $admin = User::factory()->create([
+            'phone' => '081234567890',
+        ]);
         $admin->assignRole('admin');
 
         $this->actingAs($admin);
