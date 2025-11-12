@@ -21,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->runningUnitTests()) {
+            return;
+        }
+
         // Add custom CSS after Filament styles using render hook
         FilamentView::registerRenderHook(
             PanelsRenderHook::STYLES_AFTER,

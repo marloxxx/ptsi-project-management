@@ -37,6 +37,25 @@ php artisan breezy:install --two-factor
 
 Aktifkan TOTP (Google Authenticator) & fallback email OTP.
 
+#### 2.1.1. Kebijakan Aktivasi MFA
+
+- **Siapa yang wajib MFA?**
+  - Seluruh pengguna pada PTSI Project Management (tanpa memandang role/izin) wajib mengaktifkan MFA sebelum diberikan akses produksi atau sandbox yang berisi data sensitif.
+  - Pastikan onboarding user baru mencakup aktivasi MFA sebelum akun dinyatakan aktif.
+- **Siapa yang boleh mengaktifkan/reset MFA untuk user lain?**
+  - Role dengan izin `users.update` (default: `super_admin`, `admin`, `manager`).
+  - Proses reset mengikuti langkah berikut:
+    1. Masuk ke Filament → `Users`.
+    2. Pilih user terkait → tab `Security`.
+    3. Klik `Disable Two-Factor` atau `Regenerate Recovery Codes`.
+    4. Catat perubahan di activity log dan informasikan user untuk re-setup aplikasi authenticator.
+- **Self-service enablement:**
+  - User masuk ke menu `My Profile`.
+  - Pilih tab `Two-Factor Authentication`.
+  - Scan QR code (Google Authenticator / Authy) dan simpan recovery codes.
+- **Audit trail:**
+  - Pastikan activity log menangkap perubahan MFA (`two-factor-enabled`, `two-factor-disabled`) via `LogsActivity`.
+
 ### 2.2. Session Security
 
 * `SESSION_SECURE_COOKIE=true`

@@ -16,17 +16,29 @@ class TicketServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    private ProjectServiceInterface $projectService;
+
+    private TicketServiceInterface $ticketService;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        /** @var ProjectServiceInterface $projectService */
+        $projectService = $this->app->make(ProjectServiceInterface::class);
+        $this->projectService = $projectService;
+
+        /** @var TicketServiceInterface $ticketService */
+        $ticketService = $this->app->make(TicketServiceInterface::class);
+        $this->ticketService = $ticketService;
+    }
+
     public function test_ticket_service_creates_ticket_with_history_and_assignees(): void
     {
-        /** @var ProjectServiceInterface $projectService */
-        $projectService = app(ProjectServiceInterface::class);
-        /** @var TicketServiceInterface $ticketService */
-        $ticketService = app(TicketServiceInterface::class);
-
         $owner = User::factory()->create();
         $assignee = User::factory()->create();
 
-        $project = $projectService->create([
+        $project = $this->projectService->create([
             'name' => 'Support Rollout',
             'ticket_prefix' => 'SUP',
         ], [$owner->id]);
@@ -36,7 +48,7 @@ class TicketServiceTest extends TestCase
 
         $this->actingAs($owner);
 
-        $ticket = $ticketService->create([
+        $ticket = $this->ticketService->create([
             'project_id' => $project->id,
             'ticket_status_id' => $initialStatus->id,
             'name' => 'Configure SSO',
@@ -58,21 +70,16 @@ class TicketServiceTest extends TestCase
 
     public function test_ticket_service_changes_status_and_manages_comments(): void
     {
-        /** @var ProjectServiceInterface $projectService */
-        $projectService = app(ProjectServiceInterface::class);
-        /** @var TicketServiceInterface $ticketService */
-        $ticketService = app(TicketServiceInterface::class);
-
         $user = User::factory()->create();
 
-        $project = $projectService->create([
+        $project = $this->projectService->create([
             'name' => 'Client Portal',
             'ticket_prefix' => 'CLP',
         ]);
 
         $initialStatus = $project->ticketStatuses()->first();
 
-        $reviewStatus = $projectService->addStatus($project->id, [
+        $reviewStatus = $this->projectService->addStatus($project->id, [
             'name' => 'QA Review',
             'color' => '#F59E0B',
             'is_completed' => false,
@@ -80,13 +87,13 @@ class TicketServiceTest extends TestCase
 
         $this->actingAs($user);
 
-        $ticket = $ticketService->create([
+        $ticket = $this->ticketService->create([
             'project_id' => $project->id,
             'ticket_status_id' => $initialStatus->id,
             'name' => 'Implement dashboard widgets',
         ], [$user->id]);
 
-        $ticketService->changeStatus($ticket->id, $reviewStatus->id, 'Ready for review');
+        $this->ticketService->changeStatus($ticket->id, $reviewStatus->id, 'Ready for review');
 
         $updatedTicket = $ticket->fresh();
 
@@ -98,7 +105,7 @@ class TicketServiceTest extends TestCase
             'note' => 'Ready for review',
         ]);
 
-        $comment = $ticketService->addComment($ticket->id, [
+        $comment = $this->ticketService->addComment($ticket->id, [
             'user_id' => $user->id,
             'body' => 'Please verify KPI widget export.',
             'is_internal' => false,
@@ -109,7 +116,7 @@ class TicketServiceTest extends TestCase
             'body' => 'Please verify KPI widget export.',
         ]);
 
-        $this->assertTrue($ticketService->deleteComment($comment->id));
+        $this->assertTrue($this->ticketService->deleteComment($comment->id));
 
         $this->assertDatabaseMissing('ticket_comments', [
             'id' => $comment->id,

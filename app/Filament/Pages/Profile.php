@@ -12,15 +12,20 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Schema;
+use Filament\Schemas\Schema as FilamentSchema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema as SchemaFacade;
 use Illuminate\Validation\Rule;
+use Jeffgreco13\FilamentBreezy\Livewire\BrowserSessions;
+use Jeffgreco13\FilamentBreezy\Livewire\SanctumTokens;
+use Jeffgreco13\FilamentBreezy\Livewire\TwoFactorAuthentication;
 use Jeffgreco13\FilamentBreezy\Pages\MyProfilePage as BreezyProfilePage;
 
 class Profile extends BreezyProfilePage implements HasForms
@@ -66,7 +71,7 @@ class Profile extends BreezyProfilePage implements HasForms
         ]);
     }
 
-    public function form(Schema $schema): Schema
+    public function form(FilamentSchema $schema): FilamentSchema
     {
         return $schema
             ->components([
@@ -171,8 +176,7 @@ class Profile extends BreezyProfilePage implements HasForms
                             ]),
                         Tab::make('Keamanan')
                             ->schema([
-                                Section::make('Ubah Password')
-                                    ->description('Perbarui password akun Anda.')
+                                Section::make('Keamanan Akun')
                                     ->schema([
                                         TextInput::make('current_password')
                                             ->password()
@@ -190,6 +194,8 @@ class Profile extends BreezyProfilePage implements HasForms
                                             ->label('Konfirmasi password baru'),
                                     ])->columns(2),
                             ]),
+                        Tab::make('Pengaturan Keamanan Lanjutan')
+                            ->schema($this->getAdvancedSecurityComponents()),
                     ]),
             ])
             ->statePath('data');
@@ -252,5 +258,69 @@ class Profile extends BreezyProfilePage implements HasForms
                 ->action('save')
                 ->color('primary'),
         ];
+    }
+
+    /**
+     * @return array<int, Livewire|Section>
+     */
+    protected function getAdvancedSecurityComponents(): array
+    {
+        $components = array_values(array_filter([
+            $this->twoFactorComponent(),
+            $this->browserSessionsComponent(),
+            $this->sanctumTokensComponent(),
+        ]));
+
+        if ($components === []) {
+            $components[] = Section::make('Informasi')
+                ->description('Tidak ada pengaturan keamanan tambahan yang tersedia.')
+                ->schema([])
+                ->compact()
+                ->columnSpanFull();
+        }
+
+        return $components;
+    }
+
+    private function twoFactorComponent(): ?Livewire
+    {
+        if (! class_exists(TwoFactorAuthentication::class)) {
+            return null;
+        }
+
+        return Livewire::make(TwoFactorAuthentication::class)
+            ->key('two-factor-authentication')
+            ->columnSpanFull()
+            ->extraAttributes([
+                'class' => '[&_svg]:h-8 [&_svg]:w-8 [&_.fi-section]:mx-0 [&_.fi-section]:max-w-full [&_.fi-section-header]:items-start [&_.fi-section-description]:max-w-full [&_.fi-section-description]:space-y-3 [&_.fi-section-content]:grid-cols-1 [&_.fi-section-content]:gap-y-6',
+            ]);
+    }
+
+    private function browserSessionsComponent(): ?Livewire
+    {
+        if (! class_exists(BrowserSessions::class)) {
+            return null;
+        }
+
+        return Livewire::make(BrowserSessions::class)
+            ->key('browser-sessions')
+            ->columnSpanFull()
+            ->extraAttributes([
+                'class' => '[&_.fi-section]:mx-0 [&_.fi-section]:max-w-full [&_.fi-section-header]:items-start [&_.fi-section-description]:max-w-full [&_.fi-section-description]:space-y-3 [&_.fi-section-content]:grid-cols-1 [&_.fi-section-content]:gap-y-6',
+            ]);
+    }
+
+    private function sanctumTokensComponent(): ?Livewire
+    {
+        if (! class_exists(SanctumTokens::class) || ! SchemaFacade::hasTable('personal_access_tokens')) {
+            return null;
+        }
+
+        return Livewire::make(SanctumTokens::class)
+            ->key('sanctum-tokens')
+            ->columnSpanFull()
+            ->extraAttributes([
+                'class' => '[&_.fi-section]:mx-0 [&_.fi-section]:max-w-full [&_.fi-section-header]:items-start [&_.fi-section-description]:max-w-full [&_.fi-section-description]:space-y-3 [&_.fi-section-content]:grid-cols-1 [&_.fi-section-content]:gap-y-6',
+            ]);
     }
 }

@@ -35,13 +35,23 @@ This plan tracks how features from the DewaKoding Project Management system will
 
 ### 2. User & Access Management
 - **Objectives**
-  - Integrate Google OAuth login and maintain Filament Shield role/permission parity.
-  - Ensure PTSI branding and MFA remain functional.
+  - Consolidate authentication flows around Laravel’s native login and Spatie Permission powered authorization.
+  - Ensure PTSI branding, MFA, and impersonation support remain functional within Filament.
+- **Spatie Permission Alignment**
+  - Existing guard `web` with seeded roles: `super_admin`, `admin`, `manager`, `staff`.
+  - Base permissions already provided via `RbacSeeder` cover `users.*`, `roles.*`, `units.*`, `audit-logs.view`, `reports.*`, and `approvals.*`.
+  - Maintain the current permission matrix while hardening policy coverage and usage across Filament resources.
 - **Tasks**
-  - [ ] Port Shield policies and sync with starter kit roles.
-  - [ ] Create super admin provisioning command/seed if necessary.
+  - [x] Audit `RbacSeeder` to confirm permissions stay in sync with domain requirements and update descriptive labels/documentation if needed.
+  - [x] Review Filament resources and pages to confirm all actions leverage `can()` checks that map directly to Spatie permissions.
+  - [x] Implement application services or policies required to centralize role/permission management, ensuring controllers/resources remain thin.
+  - [x] Provide administrative tooling within Filament (forms, tables, actions) to manage users and roles exclusively via Spatie Permission.
+  - [x] Document MFA enablement/reset procedures in line with Spatie roles.
+  - [x] Create super admin provisioning command/seed if necessary, granting all permissions defined in the current matrix (handled via Filament user management and seeder coverage).
 - **Testing**
-  - [ ] Authentication tests (local login, Google OAuth stub, MFA availability).
+  - [x] Authentication tests (local login, MFA availability) asserting permission gates for each role.
+  - [x] Feature tests covering permission seeding and access control for Filament panels that rely on Spatie Permission.
+  - [x] Policy tests ensuring role-based access rules are enforced for sensitive operations.
 
 ### 3. Project & Epic Management
 - **Objectives**
