@@ -35,5 +35,10 @@ interface TicketServiceInterface
      */
     public function addComment(int $ticketId, array $data): TicketComment;
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function updateComment(int $commentId, array $data): TicketComment;
+
     public function deleteComment(int $commentId): bool;
 }

@@ -6,7 +6,10 @@ use App\Domain\Services\ProjectServiceInterface;
 use App\Models\Project;
 use App\Models\TicketStatus;
 use App\Models\User;
+use App\Notifications\ProjectMemberAssigned;
+use App\Notifications\ProjectMemberRemoved;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
 
@@ -30,6 +33,8 @@ class ProjectServiceTest extends TestCase
 
         $owner = User::factory()->create();
 
+        Notification::fake();
+
         $project = $this->service->create([
             'name' => 'Migration Pilot',
             'description' => 'Initial migration project',
@@ -37,6 +42,11 @@ class ProjectServiceTest extends TestCase
             'color' => '#184980',
             'start_date' => now()->toDateString(),
         ], [$owner->id]);
+
+        Notification::assertSentTo(
+            $owner,
+            ProjectMemberAssigned::class
+        );
 
         $this->assertInstanceOf(Project::class, $project);
 
@@ -47,6 +57,45 @@ class ProjectServiceTest extends TestCase
 
         $this->assertCount(4, $project->ticketStatuses);
         $this->assertContains($owner->id, $project->members->pluck('id')->all());
+    }
+
+    public function test_project_member_assignment_notifications_skip_actor(): void
+    {
+        Notification::fake();
+
+        $actor = User::factory()->create();
+        $newMember = User::factory()->create();
+
+        $this->actingAs($actor);
+
+        $project = $this->service->create([
+            'name' => 'Collaboration Suite',
+            'ticket_prefix' => 'COL',
+        ], [$actor->getKey(), $newMember->getKey()]);
+
+        Notification::assertSentTo(
+            $newMember,
+            ProjectMemberAssigned::class
+        );
+
+        Notification::assertNotSentTo(
+            $actor,
+            ProjectMemberAssigned::class
+        );
+
+        Notification::fake();
+
+        $this->service->update($project->getKey(), [], [$actor->getKey()]);
+
+        Notification::assertSentTo(
+            $newMember,
+            ProjectMemberRemoved::class
+        );
+
+        Notification::assertNotSentTo(
+            $actor,
+            ProjectMemberRemoved::class
+        );
     }
 
     public function test_project_service_generates_external_access_token(): void

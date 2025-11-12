@@ -19,6 +19,11 @@ interface TicketCommentRepositoryInterface
      */
     public function create(array $data): TicketComment;
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function update(TicketComment $comment, array $data): TicketComment;
+
     public function delete(TicketComment $comment): bool;
 
     /**
