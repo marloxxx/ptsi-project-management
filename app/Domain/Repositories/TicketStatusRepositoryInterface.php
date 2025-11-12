@@ -15,6 +15,16 @@ interface TicketStatusRepositoryInterface
      */
     public function forProject(Project $project): Collection;
 
+    /**
+     * Retrieve ticket statuses with eager-loaded tickets for board display.
+     *
+     * @param  array<string, mixed>  $options
+     *                                         - assignee_ids: array<int, int>
+     *                                         - ticket_relations: array<int, string>
+     * @return Collection<int, TicketStatus>
+     */
+    public function boardColumns(Project $project, array $options = []): Collection;
+
     public function find(int $id): ?TicketStatus;
 
     /**
