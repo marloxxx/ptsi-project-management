@@ -17,6 +17,7 @@ use App\Models\ProjectNote;
 use App\Models\TicketStatus;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -58,7 +59,18 @@ class ProjectService implements ProjectServiceInterface
 
             $this->seedStatuses($project, $statusPresets);
 
-            return $project->fresh(['ticketStatuses', 'members']);
+            $projectWithRelations = $project->fresh(['ticketStatuses', 'members']);
+
+            activity()
+                ->performedOn($project)
+                ->event('created')
+                ->withProperties([
+                    'member_ids' => array_values($memberIds),
+                    'status_count' => $projectWithRelations?->ticketStatuses?->count(),
+                ])
+                ->log('Project created');
+
+            return $projectWithRelations ?? $project;
         });
     }
 
@@ -77,7 +89,23 @@ class ProjectService implements ProjectServiceInterface
                 $this->projectRepository->syncMembers($project, $memberIds);
             }
 
-            return $project->fresh(['ticketStatuses', 'members']);
+            $projectWithRelations = $project->fresh(['ticketStatuses', 'members']);
+
+            $properties = [
+                'changed_attributes' => array_keys($data),
+            ];
+
+            if ($memberIds !== null) {
+                $properties['member_ids'] = array_values($memberIds);
+            }
+
+            activity()
+                ->performedOn($project)
+                ->event('updated')
+                ->withProperties($properties)
+                ->log('Project updated');
+
+            return $projectWithRelations ?? $project;
         });
     }
 
@@ -85,6 +113,11 @@ class ProjectService implements ProjectServiceInterface
     {
         return DB::transaction(function () use ($projectId) {
             $project = $this->findProjectOrFail($projectId);
+
+            activity()
+                ->performedOn($project)
+                ->event('deleted')
+                ->log('Project deleted');
 
             return $this->projectRepository->delete($project);
         });
@@ -103,7 +136,18 @@ class ProjectService implements ProjectServiceInterface
             'sort_order' => $project->ticketStatuses()->max('sort_order') + 1,
         ], $data);
 
-        return $this->ticketStatusRepository->create($project, $statusData);
+        $status = $this->ticketStatusRepository->create($project, $statusData);
+
+        activity()
+            ->performedOn($status)
+            ->event('created')
+            ->withProperties([
+                'project_id' => $project->id,
+                'status_id' => $status->id,
+            ])
+            ->log('Project status created');
+
+        return $status;
     }
 
     /**
@@ -113,7 +157,19 @@ class ProjectService implements ProjectServiceInterface
     {
         $status = $this->findStatusOrFail($statusId);
 
-        return $this->ticketStatusRepository->update($status, $data);
+        $updatedStatus = $this->ticketStatusRepository->update($status, $data);
+
+        activity()
+            ->performedOn($updatedStatus)
+            ->event('updated')
+            ->withProperties([
+                'project_id' => $updatedStatus->project_id,
+                'status_id' => $updatedStatus->id,
+                'changed_attributes' => array_keys($data),
+            ])
+            ->log('Project status updated');
+
+        return $updatedStatus;
     }
 
     public function removeStatus(int $statusId): bool
@@ -123,6 +179,15 @@ class ProjectService implements ProjectServiceInterface
         if ($status->tickets()->exists()) {
             throw new RuntimeException('Cannot delete status while tickets still reference it.');
         }
+
+        activity()
+            ->performedOn($status)
+            ->event('deleted')
+            ->withProperties([
+                'project_id' => $status->project_id,
+                'status_id' => $status->id,
+            ])
+            ->log('Project status deleted');
 
         return $this->ticketStatusRepository->delete($status);
     }
@@ -135,6 +200,14 @@ class ProjectService implements ProjectServiceInterface
         $project = $this->findProjectOrFail($projectId);
 
         $this->ticketStatusRepository->reorder($project, array_values($orderedIds));
+
+        activity()
+            ->performedOn($project)
+            ->event('updated')
+            ->withProperties([
+                'status_order' => array_values($orderedIds),
+            ])
+            ->log('Project statuses reordered');
     }
 
     /**
@@ -144,7 +217,18 @@ class ProjectService implements ProjectServiceInterface
     {
         $payload = array_merge($data, ['project_id' => $projectId]);
 
-        return $this->epicRepository->create($payload);
+        $epic = $this->epicRepository->create($payload);
+
+        activity()
+            ->performedOn($epic)
+            ->event('created')
+            ->withProperties([
+                'project_id' => $projectId,
+                'epic_id' => $epic->id,
+            ])
+            ->log('Project epic created');
+
+        return $epic;
     }
 
     /**
@@ -154,7 +238,19 @@ class ProjectService implements ProjectServiceInterface
     {
         $epic = $this->findEpicOrFail($epicId);
 
-        return $this->epicRepository->update($epic, $data);
+        $updatedEpic = $this->epicRepository->update($epic, $data);
+
+        activity()
+            ->performedOn($updatedEpic)
+            ->event('updated')
+            ->withProperties([
+                'project_id' => $updatedEpic->project_id,
+                'epic_id' => $updatedEpic->id,
+                'changed_attributes' => array_keys($data),
+            ])
+            ->log('Project epic updated');
+
+        return $updatedEpic;
     }
 
     public function deleteEpic(int $epicId): bool
@@ -164,6 +260,15 @@ class ProjectService implements ProjectServiceInterface
         if ($epic->tickets()->exists()) {
             throw new RuntimeException('Cannot delete epic while tickets still reference it.');
         }
+
+        activity()
+            ->performedOn($epic)
+            ->event('deleted')
+            ->withProperties([
+                'project_id' => $epic->project_id,
+                'epic_id' => $epic->id,
+            ])
+            ->log('Project epic deleted');
 
         return $this->epicRepository->delete($epic);
     }
@@ -177,7 +282,26 @@ class ProjectService implements ProjectServiceInterface
             'project_id' => $projectId,
         ]);
 
-        return $this->projectNoteRepository->create($payload);
+        if (! array_key_exists('created_by', $payload) || $payload['created_by'] === null) {
+            $payload['created_by'] = Auth::id();
+        }
+
+        if (! array_key_exists('note_date', $payload) || $payload['note_date'] === null) {
+            $payload['note_date'] = now();
+        }
+
+        $note = $this->projectNoteRepository->create($payload);
+
+        activity()
+            ->performedOn($note)
+            ->event('created')
+            ->withProperties([
+                'project_id' => $projectId,
+                'note_id' => $note->id,
+            ])
+            ->log('Project note created');
+
+        return $note;
     }
 
     /**
@@ -187,12 +311,33 @@ class ProjectService implements ProjectServiceInterface
     {
         $note = $this->findProjectNoteOrFail($noteId);
 
-        return $this->projectNoteRepository->update($note, $data);
+        $updatedNote = $this->projectNoteRepository->update($note, $data);
+
+        activity()
+            ->performedOn($updatedNote)
+            ->event('updated')
+            ->withProperties([
+                'project_id' => $updatedNote->project_id,
+                'note_id' => $updatedNote->id,
+                'changed_attributes' => array_keys($data),
+            ])
+            ->log('Project note updated');
+
+        return $updatedNote;
     }
 
     public function deleteNote(int $noteId): bool
     {
         $note = $this->findProjectNoteOrFail($noteId);
+
+        activity()
+            ->performedOn($note)
+            ->event('deleted')
+            ->withProperties([
+                'project_id' => $note->project_id,
+                'note_id' => $note->id,
+            ])
+            ->log('Project note deleted');
 
         return $this->projectNoteRepository->delete($note);
     }
@@ -202,22 +347,50 @@ class ProjectService implements ProjectServiceInterface
         $project = $this->findProjectOrFail($projectId);
 
         return DB::transaction(function () use ($project, $label) {
+            $replacedTokenId = null;
+
             if ($existing = $this->externalAccessTokenRepository->findActiveForProject($project->id)) {
+                $replacedTokenId = $existing->id;
                 $this->externalAccessTokenRepository->delete($existing);
             }
 
-            return $this->issueExternalToken($project->id, $label);
+            $token = $this->issueExternalToken($project->id, $label);
+
+            activity()
+                ->performedOn($project)
+                ->event('external_access_generated')
+                ->withProperties([
+                    'token_id' => $token->id,
+                    'label' => $token->name,
+                    'replaced_token_id' => $replacedTokenId,
+                ])
+                ->log('Project external access token generated');
+
+            return $token;
         });
     }
 
     public function rotateExternalAccess(int $tokenId): ExternalAccessToken
     {
         $token = $this->findExternalTokenOrFail($tokenId);
+        $project = $this->findProjectOrFail($token->project_id);
 
-        return DB::transaction(function () use ($token) {
+        return DB::transaction(function () use ($token, $project) {
             $this->externalAccessTokenRepository->delete($token);
 
-            return $this->issueExternalToken($token->project_id, $token->name);
+            $newToken = $this->issueExternalToken($token->project_id, $token->name);
+
+            activity()
+                ->performedOn($project)
+                ->event('external_access_rotated')
+                ->withProperties([
+                    'token_id' => $newToken->id,
+                    'previous_token_id' => $token->id,
+                    'label' => $newToken->name,
+                ])
+                ->log('Project external access token rotated');
+
+            return $newToken;
         });
     }
 
@@ -225,9 +398,21 @@ class ProjectService implements ProjectServiceInterface
     {
         $token = $this->findExternalTokenOrFail($tokenId);
 
-        return (bool) $this->externalAccessTokenRepository->update($token, [
+        $project = $this->findProjectOrFail($token->project_id);
+
+        $updatedToken = $this->externalAccessTokenRepository->update($token, [
             'is_active' => false,
         ]);
+
+        activity()
+            ->performedOn($project)
+            ->event('external_access_deactivated')
+            ->withProperties([
+                'token_id' => $updatedToken->id,
+            ])
+            ->log('Project external access token deactivated');
+
+        return true;
     }
 
     protected function findProjectOrFail(int $projectId): Project

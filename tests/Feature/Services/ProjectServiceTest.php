@@ -4,8 +4,10 @@ namespace Tests\Feature\Services;
 
 use App\Domain\Services\ProjectServiceInterface;
 use App\Models\Project;
+use App\Models\TicketStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
 
 class ProjectServiceTest extends TestCase
@@ -64,5 +66,67 @@ class ProjectServiceTest extends TestCase
             'project_id' => $project->id,
             'name' => 'Client Portal',
         ]);
+    }
+
+    public function test_add_note_sets_defaults_and_logs_activity(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $project = $this->service->create([
+            'name' => 'Documentation Refresh',
+            'ticket_prefix' => 'DOC',
+        ]);
+
+        $note = $this->service->addNote($project->id, [
+            'title' => 'Kick-off',
+            'body' => 'Captured initial scoping decisions.',
+        ]);
+
+        $this->assertNotNull($note->note_date);
+        $this->assertSame($user->getKey(), $note->created_by);
+
+        $this->assertDatabaseHas('project_notes', [
+            'id' => $note->id,
+            'project_id' => $project->id,
+            'title' => 'Kick-off',
+        ]);
+
+        $this->assertTrue(
+            Activity::query()
+                ->where('event', 'created')
+                ->where('subject_type', $note::class)
+                ->where('subject_id', $note->id)
+                ->exists()
+        );
+    }
+
+    public function test_add_status_records_activity(): void
+    {
+        $project = $this->service->create([
+            'name' => 'QA Hardening',
+            'ticket_prefix' => 'QA',
+        ]);
+
+        $status = $this->service->addStatus($project->id, [
+            'name' => 'QA Ready',
+            'color' => '#2563EB',
+        ]);
+
+        $this->assertInstanceOf(TicketStatus::class, $status);
+
+        $this->assertDatabaseHas('ticket_statuses', [
+            'id' => $status->id,
+            'project_id' => $project->id,
+            'name' => 'QA Ready',
+        ]);
+
+        $this->assertTrue(
+            Activity::query()
+                ->where('event', 'created')
+                ->where('subject_type', $status::class)
+                ->where('subject_id', $status->id)
+                ->exists()
+        );
     }
 }

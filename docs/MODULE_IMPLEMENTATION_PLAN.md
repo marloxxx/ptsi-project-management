@@ -57,11 +57,11 @@ This plan tracks how features from the DewaKoding Project Management system will
 - **Objectives**
   - Provide CRUD interfaces for projects and epics with custom fields (ticket prefix, timelines, team members).
 - **Tasks**
-  - [ ] Build repositories/services for Projects & Epics, including assignment logic.
-  - [ ] Create Filament Resources with forms and table schemas.
-  - [ ] Implement project notes and audit logging via starter kit activity log.
+  - [x] Build repositories/services for Projects & Epics, including assignment logic.
+  - [x] Create Filament Resources with forms and table schemas.
+  - [x] Implement project notes and audit logging via starter kit activity log.
 - **Testing**
-  - [ ] Filament resource tests for create/edit/list flows.
+  - [x] Filament resource tests for create/edit/list flows.
 
 ### 4. Ticket Lifecycle
 - **Objectives**
