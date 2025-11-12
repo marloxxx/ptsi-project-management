@@ -80,7 +80,7 @@ class RecentActivityTable extends BaseWidget
             ])
             ->filters([
                 Filter::make('date_range')
-                    ->form([
+                    ->schema([
                         DatePicker::make('start_date')->label('Start'),
                         DatePicker::make('end_date')->label('End'),
                     ])

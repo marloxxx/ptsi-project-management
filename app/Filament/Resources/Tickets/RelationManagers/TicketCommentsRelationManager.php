@@ -98,9 +98,6 @@ class TicketCommentsRelationManager extends RelationManager
         return (int) $ticket->getKey();
     }
 
-    /**
-     * Get the current user.
-     */
     private function currentUser(): ?User
     {
         $user = Auth::user();
