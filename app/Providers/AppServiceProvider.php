@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
         // Add custom CSS after Filament styles using render hook
         FilamentView::registerRenderHook(
             PanelsRenderHook::STYLES_AFTER,
-            fn(): string => view('filament.custom-styles')->render()
+            fn (): string => view('filament.custom-styles')->render()
         );
     }
 }
