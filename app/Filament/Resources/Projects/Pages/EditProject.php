@@ -11,7 +11,6 @@ use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
-use InvalidArgumentException;
 
 class EditProject extends EditRecord
 {
@@ -40,13 +39,14 @@ class EditProject extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        if ($this->record instanceof Project) {
-            $this->record->loadMissing('members');
-            $data['member_ids'] = $this->record->members
-                ->pluck('id')
-                ->map(fn ($id): int => (int) $id)
-                ->all();
-        }
+        /** @var Project $record */
+        $record = $this->record;
+
+        $record->loadMissing('members');
+        $data['member_ids'] = $record->members
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
 
         return $data;
     }
@@ -56,10 +56,7 @@ class EditProject extends EditRecord
      */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        if (! $record instanceof Project) {
-            throw new InvalidArgumentException('Expected Project model.');
-        }
-
+        /** @var Project $record */
         $memberIds = null;
 
         if (array_key_exists('member_ids', $data)) {
@@ -82,10 +79,7 @@ class EditProject extends EditRecord
 
     protected function handleRecordDeletion(Model $record): void
     {
-        if (! $record instanceof Project) {
-            throw new InvalidArgumentException('Expected Project model.');
-        }
-
+        /** @var Project $record */
         $this->projectService->delete((int) $record->getKey());
     }
 }

@@ -24,7 +24,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use InvalidArgumentException;
 
 class ProjectNotesRelationManager extends RelationManager
 {
@@ -99,15 +98,15 @@ class ProjectNotesRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->visible(fn (): bool => $this->userCan('project-notes.create')),
+                    ->visible(fn (): bool => self::currentUser()?->can('project-notes.create') ?? false),
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->visible(fn (): bool => $this->userCan('project-notes.view')),
+                    ->visible(fn (): bool => self::currentUser()?->can('project-notes.view') ?? false),
                 EditAction::make()
-                    ->visible(fn (): bool => $this->userCan('project-notes.update')),
+                    ->visible(fn (): bool => self::currentUser()?->can('project-notes.update') ?? false),
                 DeleteAction::make()
-                    ->visible(fn (): bool => $this->userCan('project-notes.delete'))
+                    ->visible(fn (): bool => self::currentUser()?->can('project-notes.delete') ?? false)
                     ->requiresConfirmation(),
             ])
             ->emptyStateHeading('No notes yet')
@@ -119,7 +118,10 @@ class ProjectNotesRelationManager extends RelationManager
      */
     protected function handleRecordCreation(array $data): Model
     {
-        return $this->projectService->addNote($this->resolveProjectId(), $data);
+        /** @var Project $project */
+        $project = $this->getOwnerRecord();
+
+        return $this->projectService->addNote((int) $project->getKey(), $data);
     }
 
     /**
@@ -127,35 +129,23 @@ class ProjectNotesRelationManager extends RelationManager
      */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        if (! $record instanceof ProjectNote) {
-            throw new InvalidArgumentException('Expected ProjectNote model.');
-        }
-
+        /** @var ProjectNote $record */
         return $this->projectService->updateNote((int) $record->getKey(), $data);
     }
 
     protected function handleRecordDeletion(Model $record): void
     {
-        if (! $record instanceof ProjectNote) {
-            throw new InvalidArgumentException('Expected ProjectNote model.');
-        }
-
+        /** @var ProjectNote $record */
         $this->projectService->deleteNote((int) $record->getKey());
     }
 
-    private function resolveProjectId(): int
+    /**
+     * Get the current user.
+     */
+    private function currentUser(): ?User
     {
-        $project = $this->getOwnerRecord();
+        $user = Auth::user();
 
-        if (! $project instanceof Project) {
-            throw new InvalidArgumentException('Unable to resolve project context.');
-        }
-
-        return (int) $project->getKey();
-    }
-
-    private function userCan(string $permission): bool
-    {
-        return Auth::user()?->can($permission) ?? false;
+        return $user instanceof User ? $user : null;
     }
 }

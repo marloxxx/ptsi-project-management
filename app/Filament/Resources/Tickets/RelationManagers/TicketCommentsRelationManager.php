@@ -56,10 +56,10 @@ class TicketCommentsRelationManager extends RelationManager
             TextColumn::make('body')->label('Comment')->limit(100)->wrap()->searchable(),
             TextColumn::make('is_internal')->label('Type')->badge()->color(fn (TicketComment $record): string => $record->is_internal ? 'warning' : 'success')->formatStateUsing(fn (TicketComment $record): string => $record->is_internal ? 'Internal' : 'Public'),
             TextColumn::make('created_at')->label('Created')->dateTime('M d, Y \a\t H:i')->sortable(),
-        ])->headerActions([CreateAction::make()->visible(fn (): bool => self::currentUser()?->can('tickets.comment') ?? false)])->recordActions([
-            ViewAction::make()->visible(fn (): bool => self::currentUser()?->can('tickets.view') ?? false),
-            EditAction::make()->visible(fn (): bool => self::currentUser()?->can('tickets.comment') ?? false),
-            DeleteAction::make()->visible(fn (): bool => self::currentUser()?->can('tickets.comment') ?? false)->requiresConfirmation(),
+        ])->headerActions([CreateAction::make()->visible(fn (): bool => $this->currentUser()?->can('tickets.comment') ?? false)])->recordActions([
+            ViewAction::make()->visible(fn (): bool => $this->currentUser()?->can('tickets.view') ?? false),
+            EditAction::make()->visible(fn (): bool => $this->currentUser()?->can('tickets.comment') ?? false),
+            DeleteAction::make()->visible(fn (): bool => $this->currentUser()?->can('tickets.comment') ?? false)->requiresConfirmation(),
         ])->emptyStateHeading('No comments yet')->emptyStateDescription('Add comments to track progress and communicate with the team.');
     }
 
@@ -76,9 +76,7 @@ class TicketCommentsRelationManager extends RelationManager
      */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        if (! $record instanceof TicketComment) {
-            throw new InvalidArgumentException('Expected TicketComment model.');
-        }
+        /** @var TicketComment $record */
         $record->update($data);
 
         return $record->fresh();
@@ -86,9 +84,7 @@ class TicketCommentsRelationManager extends RelationManager
 
     protected function handleRecordDeletion(Model $record): void
     {
-        if (! $record instanceof TicketComment) {
-            throw new InvalidArgumentException('Expected TicketComment model.');
-        }
+        /** @var TicketComment $record */
         $this->ticketService->deleteComment((int) $record->getKey());
     }
 
@@ -102,7 +98,7 @@ class TicketCommentsRelationManager extends RelationManager
         return (int) $ticket->getKey();
     }
 
-    private static function currentUser(): ?User
+    private function userCan(string $permission): bool
     {
         $user = Auth::user();
 

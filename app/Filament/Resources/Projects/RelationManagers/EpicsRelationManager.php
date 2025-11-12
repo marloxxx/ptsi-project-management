@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Projects\RelationManagers;
 use App\Domain\Services\ProjectServiceInterface;
 use App\Models\Epic;
 use App\Models\Project;
+use App\Models\User;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -107,15 +108,15 @@ class EpicsRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->visible(fn (): bool => $this->userCan('epics.create')),
+                    ->visible(fn (): bool => $this->currentUser()?->can('epics.create') ?? false),
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->visible(fn (): bool => $this->userCan('epics.view')),
+                    ->visible(fn (): bool => $this->currentUser()?->can('epics.view') ?? false),
                 EditAction::make()
-                    ->visible(fn (): bool => $this->userCan('epics.update')),
+                    ->visible(fn (): bool => $this->currentUser()?->can('epics.update') ?? false),
                 DeleteAction::make()
-                    ->visible(fn (): bool => $this->userCan('epics.delete'))
+                    ->visible(fn (): bool => $this->currentUser()?->can('epics.delete') ?? false)
                     ->requiresConfirmation(),
             ])
             ->emptyStateHeading('No epics yet')
@@ -162,8 +163,13 @@ class EpicsRelationManager extends RelationManager
         return (int) $project->getKey();
     }
 
-    private function userCan(string $permission): bool
+    /**
+     * Get the current user.
+     */
+    private function currentUser(): ?User
     {
-        return Auth::user()?->can($permission) ?? false;
+        $user = Auth::user();
+
+        return $user instanceof User ? $user : null;
     }
 }

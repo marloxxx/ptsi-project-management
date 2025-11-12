@@ -41,16 +41,17 @@ class CreateProject extends CreateRecord
         $statusPresetsInput = is_array($data['status_presets'] ?? null) ? $data['status_presets'] : [];
 
         /** @var array<int, array{name: ?string, color: string, is_completed: bool}> $statusPresets */
-        $statusPresets = array_values(array_filter(array_map(
-            static function (array $preset): array {
-                return [
-                    'name' => Arr::get($preset, 'name'),
-                    'color' => Arr::get($preset, 'color', '#2563EB'),
-                    'is_completed' => (bool) Arr::get($preset, 'is_completed', false),
-                ];
-            },
-            $statusPresetsInput
-        ),
+        $statusPresets = array_values(array_filter(
+            array_map(
+                static function (array $preset): array {
+                    return [
+                        'name' => Arr::get($preset, 'name'),
+                        'color' => Arr::get($preset, 'color', '#2563EB'),
+                        'is_completed' => (bool) Arr::get($preset, 'is_completed', false),
+                    ];
+                },
+                $statusPresetsInput
+            ),
             static fn (array $preset): bool => filled($preset['name'])
         ));
 

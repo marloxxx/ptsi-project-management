@@ -119,6 +119,11 @@ class DomainServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
+            \App\Domain\Services\TicketBoardServiceInterface::class,
+            \App\Application\Services\TicketBoardService::class
+        );
+
+        $this->app->bind(
             \App\Domain\Services\PermissionCatalogServiceInterface::class,
             \App\Application\Services\PermissionCatalogService::class
         );

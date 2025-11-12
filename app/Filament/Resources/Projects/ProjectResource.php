@@ -94,19 +94,13 @@ class ProjectResource extends Resource
 
     public static function canEdit(Model $record): bool
     {
-        if (! $record instanceof Project) {
-            return false;
-        }
-
+        /** @var Project $record */
         return self::currentUser()?->can('projects.update') ?? false;
     }
 
     public static function canDelete(Model $record): bool
     {
-        if (! $record instanceof Project) {
-            return false;
-        }
-
+        /** @var Project $record */
         return self::currentUser()?->can('projects.delete') ?? false;
     }
 
@@ -145,6 +139,9 @@ class ProjectResource extends Resource
             ->with(['ticketStatuses', 'members']);
     }
 
+    /**
+     * Get the current user.
+     */
     private static function currentUser(): ?User
     {
         $user = Auth::user();

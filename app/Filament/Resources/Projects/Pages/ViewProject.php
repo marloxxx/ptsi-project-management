@@ -12,7 +12,6 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Database\Eloquent\Model;
-use InvalidArgumentException;
 
 class ViewProject extends ViewRecord
 {
@@ -35,12 +34,8 @@ class ViewProject extends ViewRecord
                     ->visible(fn (): bool => static::getResource()::canDelete($this->record))
                     ->requiresConfirmation()
                     ->action(function (Model $record): void {
-                        if (! $record instanceof Project) {
-                            throw new InvalidArgumentException('Expected Project model.');
-                        }
-
+                        /** @var Project $record */
                         $this->projectService->delete((int) $record->getKey());
-
                         $this->redirect(static::getResource()::getUrl('index'));
                     }),
             ])->button()->label('Actions'),

@@ -164,6 +164,9 @@ class TicketsTable
             ->defaultSort('created_at', 'desc');
     }
 
+    /**
+     * Get the current user.
+     */
     private static function currentUser(): ?User
     {
         $user = Auth::user();

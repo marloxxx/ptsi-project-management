@@ -78,19 +78,13 @@ class RoleResource extends Resource
 
     public static function canEdit(Model $record): bool
     {
-        if (! $record instanceof Role) {
-            return false;
-        }
-
+        /** @var Role $record */
         return self::currentUser()?->can('update', $record) ?? false;
     }
 
     public static function canDelete(Model $record): bool
     {
-        if (! $record instanceof Role) {
-            return false;
-        }
-
+        /** @var Role $record */
         return self::currentUser()?->can('delete', $record) ?? false;
     }
 
@@ -119,6 +113,9 @@ class RoleResource extends Resource
         return (string) static::getModel()::count();
     }
 
+    /**
+     * Get the current user.
+     */
     private static function currentUser(): ?User
     {
         $user = Auth::user();

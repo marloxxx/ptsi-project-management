@@ -78,11 +78,11 @@ This plan tracks how features from the DewaKoding Project Management system will
 - **Objectives**
   - Deliver Kanban board and timeline visualization inside Filament.
 - **Tasks**
-  - [ ] Rebuild board page leveraging Filament page architecture and tab layout plugin.
-  - [ ] Implement timeline chart widgets and ensure data aggregation services exist.
-  - [ ] Optimize queries for large datasets (eager loading, caching where needed).
+  - [x] Rebuild board page leveraging Filament page architecture and tab layout plugin.
+  - [x] Implement timeline chart widgets and ensure data aggregation services exist.
+  - [x] Optimize queries for large datasets (eager loading, caching where needed).
 - **Testing**
-  - [ ] Livewire/Filament tests covering board interactions and timeline rendering responses.
+  - [x] Livewire/Filament tests covering board interactions and timeline rendering responses.
 
 ### 6. Analytics & Dashboards
 - **Objectives**

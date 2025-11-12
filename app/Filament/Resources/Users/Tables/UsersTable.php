@@ -22,7 +22,7 @@ class UsersTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with('unit'))
+            ->modifyQueryUsing(fn($query) => $query->with('unit'))
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
@@ -52,29 +52,32 @@ class UsersTable
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->authorize(fn (User $record): bool => self::currentUser()?->can('view', $record) ?? false),
+                    ->authorize(fn(User $record): bool => self::currentUser()?->can('view', $record) ?? false),
                 EditAction::make()
-                    ->authorize(fn (User $record): bool => self::currentUser()?->can('update', $record) ?? false),
+                    ->authorize(fn(User $record): bool => self::currentUser()?->can('update', $record) ?? false),
                 DeleteAction::make()
                     ->requiresConfirmation()
-                    ->authorize(fn (User $record): bool => self::currentUser()?->can('delete', $record) ?? false)
-                    ->action(fn (User $record, UserServiceInterface $userService) => $userService->delete($record->id))
+                    ->authorize(fn(User $record): bool => self::currentUser()?->can('delete', $record) ?? false)
+                    ->action(fn(User $record, UserServiceInterface $userService) => $userService->delete($record->id))
                     ->successNotificationTitle('User deleted'),
                 Impersonate::make()
-                    ->visible(fn (User $record): bool => self::currentUser()?->can('users.view') ?? false),
+                    ->visible(fn(User $record): bool => self::currentUser()?->can('users.view') ?? false),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->authorize(fn (): bool => self::currentUser()?->can('users.delete') ?? false),
+                        ->authorize(fn(): bool => self::currentUser()?->can('users.delete') ?? false),
                     ForceDeleteBulkAction::make()
-                        ->authorize(fn (): bool => self::currentUser()?->can('users.force-delete') ?? false),
+                        ->authorize(fn(): bool => self::currentUser()?->can('users.force-delete') ?? false),
                     RestoreBulkAction::make()
-                        ->authorize(fn (): bool => self::currentUser()?->can('users.restore') ?? false),
+                        ->authorize(fn(): bool => self::currentUser()?->can('users.restore') ?? false),
                 ]),
             ]);
     }
 
+    /**
+     * Get the current user.
+     */
     private static function currentUser(): ?User
     {
         $user = Auth::user();
