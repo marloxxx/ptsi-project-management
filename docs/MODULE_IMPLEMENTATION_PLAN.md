@@ -88,10 +88,10 @@ This plan tracks how features from the DewaKoding Project Management system will
 - **Objectives**
   - Port leaderboard, stats overview, project status charts, and user contribution widgets.
 - **Tasks**
-  - [ ] Implement dedicated Application services for aggregations.
-  - [ ] Create Filament widgets/dashboard sections with PTSI theming.
+  - [x] Implement dedicated Application services for aggregations.
+  - [x] Create Filament widgets/dashboard sections with PTSI theming.
 - **Testing**
-  - [ ] Widget feature tests verifying metric counts and chart datasets.
+  - [x] Widget feature tests verifying metric counts and chart datasets.
 
 ### 7. Notifications & External Portal
 - **Objectives**

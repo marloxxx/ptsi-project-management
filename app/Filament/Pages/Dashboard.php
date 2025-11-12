@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\MonthlyTicketTrendChart;
+use App\Filament\Widgets\RecentActivityTable;
+use App\Filament\Widgets\StatsOverview;
+use App\Filament\Widgets\TicketsPerProjectChart;
+use App\Filament\Widgets\UserStatisticsChart;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,5 +22,19 @@ class Dashboard extends BaseDashboard
     public static function shouldRegisterNavigation(): bool
     {
         return static::canAccess();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getWidgets(): array
+    {
+        return [
+            StatsOverview::class,
+            TicketsPerProjectChart::class,
+            UserStatisticsChart::class,
+            MonthlyTicketTrendChart::class,
+            RecentActivityTable::class,
+        ];
     }
 }
