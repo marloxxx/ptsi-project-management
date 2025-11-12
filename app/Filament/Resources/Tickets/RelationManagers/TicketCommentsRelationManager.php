@@ -63,11 +63,17 @@ class TicketCommentsRelationManager extends RelationManager
         ])->emptyStateHeading('No comments yet')->emptyStateDescription('Add comments to track progress and communicate with the team.');
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     protected function handleRecordCreation(array $data): Model
     {
         return $this->ticketService->addComment($this->resolveTicketId(), $data);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         if (! $record instanceof TicketComment) {

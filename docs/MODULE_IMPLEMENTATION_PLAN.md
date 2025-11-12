@@ -71,8 +71,8 @@ This plan tracks how features from the DewaKoding Project Management system will
   - [x] Port comments Livewire component and integrate with Filament relation managers.
   - [x] Configure exports/imports (Excel) and unique ticket identifier generator.
 - **Testing**
-  - [ ] Feature tests for ticket creation, assignment, status updates, and history tracking.
-  - [ ] Tests for Excel import/export commands.
+  - [x] Feature tests for ticket creation, assignment, status updates, and history tracking.
+  - [x] Tests for Excel import/export commands.
 
 ### 5. Boards & Timeline Views
 - **Objectives**

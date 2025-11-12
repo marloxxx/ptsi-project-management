@@ -129,6 +129,9 @@ class TicketResource extends Resource
         return (string) static::getModel()::count();
     }
 
+    /**
+     * @return Builder<Ticket>
+     */
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

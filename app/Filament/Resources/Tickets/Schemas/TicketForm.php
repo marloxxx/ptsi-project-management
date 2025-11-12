@@ -38,12 +38,12 @@ class TicketForm
                                     ->required()
                                     ->searchable()
                                     ->preload()
-                                    ->options(fn(): array => Project::query()
+                                    ->options(fn (): array => Project::query()
                                         ->orderBy('name')
                                         ->pluck('name', 'id')
                                         ->toArray())
                                     ->reactive()
-                                    ->afterStateUpdated(fn(callable $set) => $set('ticket_status_id', null))
+                                    ->afterStateUpdated(fn (callable $set) => $set('ticket_status_id', null))
                                     ->helperText('Select the project this ticket belongs to.'),
 
                                 Select::make('ticket_status_id')
@@ -71,7 +71,7 @@ class TicketForm
                                     ->required()
                                     ->searchable()
                                     ->preload()
-                                    ->options(fn(): array => TicketPriority::query()
+                                    ->options(fn (): array => TicketPriority::query()
                                         ->orderBy('sort_order')
                                         ->pluck('name', 'id')
                                         ->toArray())
@@ -101,7 +101,7 @@ class TicketForm
                                     ->label('Ticket ID')
                                     ->disabled()
                                     ->dehydrated(false)
-                                    ->visible(fn($context): bool => $context === 'edit' || $context === 'view')
+                                    ->visible(fn ($context): bool => $context === 'edit' || $context === 'view')
                                     ->helperText('Auto-generated unique ticket identifier.'),
 
                                 TextInput::make('name')
@@ -141,7 +141,7 @@ class TicketForm
                                     ->weekStartsOnMonday()
                                     ->label('Start Date')
                                     ->nullable()
-                                    ->dehydrateStateUsing(fn(?string $state): ?string => $state !== null ? Carbon::parse($state)->format('Y-m-d') : null),
+                                    ->dehydrateStateUsing(fn (?string $state): ?string => $state !== null ? Carbon::parse($state)->format('Y-m-d') : null),
 
                                 DatePicker::make('due_date')
                                     ->native(false)
@@ -149,7 +149,7 @@ class TicketForm
                                     ->label('Due Date')
                                     ->nullable()
                                     ->after('start_date')
-                                    ->dehydrateStateUsing(fn(?string $state): ?string => $state !== null ? Carbon::parse($state)->format('Y-m-d') : null),
+                                    ->dehydrateStateUsing(fn (?string $state): ?string => $state !== null ? Carbon::parse($state)->format('Y-m-d') : null),
                             ])
                             ->columns([
                                 'sm' => 2,
@@ -163,7 +163,7 @@ class TicketForm
                                     ->multiple()
                                     ->searchable()
                                     ->preload()
-                                    ->options(fn(): array => User::query()
+                                    ->options(fn (): array => User::query()
                                         ->orderBy('name')
                                         ->pluck('name', 'id')
                                         ->toArray())

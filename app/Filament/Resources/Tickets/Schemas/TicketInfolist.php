@@ -41,12 +41,22 @@ class TicketInfolist
                         TextEntry::make('status.name')
                             ->label('Status')
                             ->badge()
-                            ->color(fn(Ticket $record): string => $record->status?->color ?? 'gray'),
+                            ->color(function (Ticket $record): string {
+                                $status = $record->status;
+                                $color = $status?->color;
+
+                                return $color ?? 'gray';
+                            }),
 
                         TextEntry::make('priority.name')
                             ->label('Priority')
                             ->badge()
-                            ->color(fn(Ticket $record): string => $record->priority?->color ?? 'gray'),
+                            ->color(function (Ticket $record): string {
+                                $priority = $record->priority;
+                                $color = $priority?->color;
+
+                                return $color ?? 'gray';
+                            }),
 
                         TextEntry::make('epic.name')
                             ->label('Epic')
@@ -76,7 +86,7 @@ class TicketInfolist
                             ->label('Due Date')
                             ->date()
                             ->placeholder('-')
-                            ->color(fn(Ticket $record): ?string => $record->due_date && $record->due_date->isPast() ? 'danger' : null),
+                            ->color(fn (Ticket $record): ?string => $record->due_date && $record->due_date->isPast() ? 'danger' : null),
                     ])
                     ->columns(2),
 
