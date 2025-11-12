@@ -66,6 +66,13 @@ class RbacSeeder extends Seeder
             'project-notes.update',
             'project-notes.delete',
         ],
+        'tickets' => [
+            'tickets.view',
+            'tickets.create',
+            'tickets.update',
+            'tickets.delete',
+            'tickets.comment',
+        ],
         'audit-logs' => [
             'audit-logs.view',
         ],
@@ -130,6 +137,11 @@ class RbacSeeder extends Seeder
             'project-notes.create',
             'project-notes.update',
             'project-notes.delete',
+            'tickets.view',
+            'tickets.create',
+            'tickets.update',
+            'tickets.delete',
+            'tickets.comment',
         ],
         'manager' => [
             'users.view',
@@ -152,6 +164,11 @@ class RbacSeeder extends Seeder
             'project-notes.create',
             'project-notes.update',
             'project-notes.delete',
+            'tickets.view',
+            'tickets.create',
+            'tickets.update',
+            'tickets.delete',
+            'tickets.comment',
         ],
         'staff' => [
             'reports.view',
@@ -159,6 +176,10 @@ class RbacSeeder extends Seeder
             'projects.view',
             'epics.view',
             'project-notes.view',
+            'tickets.view',
+            'tickets.create',
+            'tickets.update',
+            'tickets.comment',
         ],
     ];
 
