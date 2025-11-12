@@ -82,6 +82,11 @@ class DomainServiceProvider extends ServiceProvider
             \App\Infrastructure\Repositories\ExternalAccessTokenRepository::class
         );
 
+        $this->app->bind(
+            \App\Domain\Repositories\AnalyticsRepositoryInterface::class,
+            \App\Infrastructure\Repositories\AnalyticsRepository::class
+        );
+
         // Register Service bindings
         $this->app->bind(
             \App\Domain\Services\RoleServiceInterface::class,
@@ -116,6 +121,11 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Domain\Services\PermissionCatalogServiceInterface::class,
             \App\Application\Services\PermissionCatalogService::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Services\AnalyticsServiceInterface::class,
+            \App\Application\Services\AnalyticsService::class
         );
     }
 

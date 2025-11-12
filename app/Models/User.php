@@ -7,6 +7,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -135,6 +136,34 @@ class User extends Authenticatable implements FilamentUser
     {
         /** @var BelongsTo<Unit, static> $relation */
         $relation = $this->belongsTo(Unit::class);
+
+        return $relation;
+    }
+
+    /**
+     * @return BelongsToMany<Project>
+     *
+     * @phpstan-return BelongsToMany<Project, static>
+     */
+    public function projects(): BelongsToMany
+    {
+        /** @var BelongsToMany<Project, static> $relation */
+        $relation = $this->belongsToMany(Project::class, 'project_members')
+            ->withTimestamps();
+
+        return $relation;
+    }
+
+    /**
+     * @return BelongsToMany<Ticket>
+     *
+     * @phpstan-return BelongsToMany<Ticket, static>
+     */
+    public function assignedTickets(): BelongsToMany
+    {
+        /** @var BelongsToMany<Ticket, static> $relation */
+        $relation = $this->belongsToMany(Ticket::class, 'ticket_users')
+            ->withTimestamps();
 
         return $relation;
     }
