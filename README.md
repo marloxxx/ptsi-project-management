@@ -13,37 +13,53 @@
 
 ## 📋 Fitur Utama
 
-### 🎨 **PTSI Branding**
-- ✅ Brand colors PTSI (Dark Blue, Sky Blue, Tosca Green)
-- ✅ Dark mode enabled
-- ✅ Custom theme & styling
+### 🎨 **PTSI Branding & UX**
+- ✅ Brand colors resmi (Dark Blue, Sky Blue, Tosca Green)
+- ✅ Dark mode + custom Filament theme
+- ✅ Bahasa Indonesia-ready dan aksesibilitas default
 
 ### 🏗️ **Clean Architecture**
 - ✅ Contracts Layer (Interfaces & Contracts)
 - ✅ Application Layer (Services, Policies, Actions)
-- ✅ Infrastructure Layer (Repositories, External Services)
-- ✅ Interface-First Pattern
+- ✅ Infrastructure Layer (Repositories & integrasi eksternal)
+- ✅ Interface-First Pattern & transactional service
 
 ### 🔐 **Security & RBAC**
-- ✅ Role-Based Access Control (Policies & Permissions)
-- ✅ Multi-Factor Authentication (MFA via Breezy)
-- ✅ User Profile Management
-- ✅ Activity Logging (Spatie Activity Log)
-- ✅ Audit Trail Ready
+- ✅ Role-Based Access Control (Spatie Permission + Filament Shield)
+- ✅ Multi-Factor Authentication (Breezy)
+- ✅ User Profile & impersonation tools
+- ✅ Activity Logging / audit trail (Spatie Activity Log)
 
-### 📦 **Built-in Features**
-- ✅ Media Library (Spatie Media Library)
-- ✅ Settings Management (Spatie Laravel Settings)
-- ✅ Excel Import/Export (Filament Excel)
-- ✅ Database Notifications
-- ✅ Permission Management
+### 📦 **Project Operations**
+- ✅ Ticket lifecycle lengkap (status, prioritas, histori, komentar)
+- ✅ Board & Timeline view memakai Filament Tab Layout Plugin
+- ✅ Analytics dashboard (stats overview, trends, assignments)
+- ✅ External client portal (login token + dashboard publik)
+- ✅ Notifikasi email + database untuk komentar & anggota proyek
 
 ### 🛠️ **Developer Experience**
-- ✅ Module Generator Command (`kit:make-module`)
-- ✅ Clean Folder Structure
-- ✅ Transactional Operations
-- ✅ Form Validation (Filament Form Schema)
-- ✅ Policy-based Authorization
+- ✅ Module generator (`kit:make-module`) & scaffolding clean architecture
+- ✅ `composer run dev` untuk menjalankan server + queue + Vite + log sekaligus
+- ✅ Blueprint, Pint, PHPStan, Pest, Debugbar termasuk di default toolchain
+- ✅ Queue worker siap pakai (database/redis) dengan contoh Supervisor
+
+> ⚠️ **Ingat:** Jalankan queue worker (via `composer run dev` atau `php artisan queue:work`) agar notifikasi & dashboard tetap realtime.
+
+---
+
+## 🧩 Modul & Timeline Implementasi
+
+| Phase | Modul / Area                                       | Status |
+| ----- | -------------------------------------------------- | :----: |
+| 0     | Foundation, branding, env baseline                 | ✅ |
+| 1     | Core domain (projects, tickets, priorities)        | ✅ |
+| 2     | User & access management (RBAC, MFA, impersonasi)  | ✅ |
+| 3     | Project & epic management + notes                  | ✅ |
+| 4     | Ticket lifecycle (history, komentar, import/export)| ✅ |
+| 5     | Kanban board & timeline (Gantt)                    | ✅ |
+| 6     | Analytics dashboard (stats, charts, activity)      | ✅ |
+| 7     | Notifications & external client portal             | ✅ |
+| 8     | Documentation & developer experience (berjalan)    | 🚧 |
 
 ---
 
@@ -73,6 +89,7 @@ npm install
 # 3. Environment setup
 cp .env.example .env
 php artisan key:generate
+php artisan storage:link
 
 # 4. Configure database (.env)
 DB_CONNECTION=mysql
@@ -88,8 +105,12 @@ php artisan migrate --seed
 # 6. Build assets
 npm run build
 
-# 7. Start development server
-php artisan serve
+# 7. Start development stack
+composer run dev  # server + queue + Vite + log stream
+# or run them separately:
+# php artisan serve
+# php artisan queue:work --queue=default --sleep=3 --tries=3
+# npm run dev
 ```
 
 Akses admin panel di: **http://localhost:8000/admin**
@@ -235,6 +256,27 @@ Action::make('approve')
 
 ---
 
+## 🌐 External Client Portal & Notifications
+
+- **Portal login**: `https://{app}/external/{token}` — token didapat dari halaman Project → External Access.
+- **Dashboard**: menampilkan progress proyek, filter status/prioritas, histori aktivitas, dan KPI mingguan.
+- **Autentikasi**: password token di-hash, update akses tercatat di `external_access_tokens`.
+- **Notifikasi**: komentar tiket & perubahan anggota proyek mengirim email + notifikasi in-app (queued).
+
+### Menjalankan Queue Worker
+
+```bash
+# development (recommended)
+composer run dev
+
+# production supervisor command
+php artisan queue:work redis --queue=default --sleep=3 --tries=3 --timeout=120
+```
+
+Panduan lengkap ada di [`docs/DEPLOYMENT_GUIDE.md`](./docs/DEPLOYMENT_GUIDE.md#-queue-workers-ptsi-ops).
+
+---
+
 ## 🧪 Testing
 
 ```bash
@@ -341,7 +383,7 @@ MIT © PT Surveyor Indonesia — Divisi Teknologi Informasi
 ## 🆘 Support
 
 - 📧 Email: ti@ptsi.co.id
-- 📚 Documentation: [Coming Soon]
+- 📚 Documentation: [docs/INDEX.md](./docs/INDEX.md)
 - 🐛 Issues: [GitHub Issues](https://github.com/ptsi-digital/laravel-starter-kit-ptsi/issues)
 
 ### Additional Features  

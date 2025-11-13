@@ -264,7 +264,61 @@ sudo systemctl restart nginx
 
 ---
 
-## ⚡ 7. Octane Deployment
+## 🔄 7. Queue Workers (PTSI Ops)
+
+Laravel notifications, email, dan job berat dieksekusi melalui queue. Pastikan worker aktif di setiap server.
+
+### 7.1 Konfigurasi dasar
+
+```env
+QUEUE_CONNECTION=redis   # Database queue bisa dipakai, redis direkomendasikan
+REDIS_CLIENT=phpredis
+```
+
+### 7.2 Perintah manual
+
+```bash
+php artisan queue:work --queue=default --sleep=3 --tries=3 --timeout=120
+```
+
+Tambahkan `php artisan queue:restart` di pipeline deploy untuk memuat ulang worker setelah release baru.
+
+### 7.3 Contoh Supervisor
+
+File: `/etc/supervisor/conf.d/ptsi-queue.conf`
+
+```ini
+[program:ptsi_queue_default]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php /var/www/ptsi-app/current/artisan queue:work redis --queue=default --sleep=3 --tries=3 --timeout=120
+autostart=true
+autorestart=true
+user=www-data
+numprocs=2
+redirect_stderr=true
+stdout_logfile=/var/log/ptsi/queue-default.log
+stopwaitsecs=3600
+```
+
+Aktifkan Supervisor:
+
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start ptsi_queue_default:*
+```
+
+### 7.4 Monitoring
+
+```bash
+sudo supervisorctl status ptsi_queue_default:*
+```
+
+Gabungkan dengan Slack alert, Horizon, atau metric server untuk mendeteksi antrian tinggi.
+
+---
+
+## ⚡ 8. Octane Deployment
 
 ### Install
 
@@ -301,7 +355,7 @@ WantedBy=multi-user.target
 
 ---
 
-## 🧪 8. Post-Deploy Checklist
+## 🧪 9. Post-Deploy Checklist
 
 | Task                                     | Status |
 | ---------------------------------------- | ------ |
@@ -314,7 +368,7 @@ WantedBy=multi-user.target
 
 ---
 
-## 🧭 9. Rollback Quick Command
+## 🧭 10. Rollback Quick Command
 
 ```bash
 cd /var/www/ptsi-app
@@ -325,7 +379,7 @@ sudo systemctl restart nginx
 
 ---
 
-## 🔒 10. Security Notes
+## 🔒 11. Security Notes
 
 * Gunakan **SSH key** (bukan password) untuk semua server.
 * **Nonaktifkan root login langsung** di `sshd_config`.
@@ -335,7 +389,7 @@ sudo systemctl restart nginx
 
 ---
 
-## 📦 11. Monitoring & Logging
+## 📦 12. Monitoring & Logging
 
 * Gunakan `spatie/laravel-activitylog` untuk jejak user.
 * Tambahkan `/health` endpoint:
@@ -349,7 +403,7 @@ Route::get('/health', fn() => response()->json(['ok' => true]));
 
 ---
 
-## 🧾 12. Backup Strategy
+## 🧾 13. Backup Strategy
 
 Gunakan `spatie/laravel-backup`:
 
@@ -367,7 +421,7 @@ Jadwalkan cron:
 
 ---
 
-## 📜 13. Kesimpulan
+## 📜 14. Kesimpulan
 
 Dengan panduan ini, semua proyek Laravel Boost internal PTSI akan:
 

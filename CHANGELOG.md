@@ -5,6 +5,26 @@ All notable changes to Laravel Starter Kit PTSI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-11-13
+
+### Added
+- 📊 Analytics dashboard widgets (stats overview, ticket trends, user distribution, recent activity).
+- 🗂️ Project board & timeline (kanban + Gantt) dengan Solution Forest Tab Layout plugin.
+- 🌐 External client portal (token login, dashboard publik dengan filter & aktivitas).
+- ✉️ Queued notifications untuk komentar tiket & perubahan anggota proyek (email + in-app).
+- 📚 Dokumentasi Phase 8: README, Quick Start, Developer Workflow, Deployment (queue/Supervisor) diperbarui.
+
+### Changed
+- ♻️ `composer run dev` kini menjalankan server, queue worker, Vite, dan log stream bersamaan.
+- 🧾 Deployment guide ditambah contoh konfigurasi Supervisor untuk queue & rename penomoran section.
+- 🗒️ Module implementation plan diperbarui untuk mencerminkan phase 5–8.
+
+### Testing
+- ✅ Pemeriksaan manual `php artisan test --filter=` untuk modul tiket, notifikasi, dan portal eksternal.
+- ⚠️ Catatan: Tes Livewire memerlukan asset Filament; jalankan `npm run build` sebelum test penuh.
+
+---
+
 ## [1.0.0] - 2025-11-06
 
 ### Added
@@ -83,14 +103,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Future Roadmap
 
-### v1.1.0 (Planned)
+### v1.2.0 (Planned)
 - [ ] Multi-tenancy support (optional)
 - [ ] Localization (i18n) support
-- [ ] Email template system
-- [ ] Advanced dashboard widgets
-- [ ] Performance monitoring integration
+- [ ] Email template system (customisable templates)
+- [ ] Performance monitoring integration (Horizon, OpenTelemetry)
 
-### v1.2.0 (Planned)
+### v1.3.0 (Planned)
 - [ ] API Resource generation in module generator
 - [ ] GraphQL support (optional)
 - [ ] Real-time features (Laravel Reverb)
