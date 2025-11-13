@@ -19,7 +19,7 @@ class ExternalPortalLoginTest extends TestCase
         parent::setUp();
 
         config([
-            'app.key' => 'base64:' . base64_encode(random_bytes(32)),
+            'app.key' => 'base64:'.base64_encode(random_bytes(32)),
         ]);
     }
 

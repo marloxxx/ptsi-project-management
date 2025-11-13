@@ -54,11 +54,13 @@ interface ExternalPortalServiceInterface
      *     search?: string|null,
      *     page_name?: string
      * }  $filters
+     * @return LengthAwarePaginator<int, \App\Models\Ticket>
      */
     public function paginatedTickets(Project $project, array $filters = []): LengthAwarePaginator;
 
     /**
      * @param  array{page_name?: string}  $filters
+     * @return LengthAwarePaginator<int, \App\Models\TicketHistory>
      */
     public function recentActivities(Project $project, array $filters = []): LengthAwarePaginator;
 }

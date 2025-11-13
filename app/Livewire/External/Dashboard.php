@@ -20,6 +20,16 @@ class Dashboard extends Component
 
     public ?Project $project = null;
 
+    /**
+     * @var array{
+     *     total: int,
+     *     completed: int,
+     *     progress: float,
+     *     overdue: int,
+     *     new_this_week: int,
+     *     completed_this_week: int
+     * }
+     */
     public array $summary = [
         'total' => 0,
         'completed' => 0,
@@ -109,6 +119,9 @@ class Dashboard extends Component
         $this->dispatch('external-dashboard-refreshed');
     }
 
+    /**
+     * @return LengthAwarePaginator<int, \App\Models\Ticket>
+     */
     public function getTicketsProperty(): LengthAwarePaginator
     {
         if (! $this->project instanceof Project) {
@@ -123,6 +136,9 @@ class Dashboard extends Component
         ]);
     }
 
+    /**
+     * @return LengthAwarePaginator<int, \App\Models\TicketHistory>
+     */
     public function getActivitiesProperty(): LengthAwarePaginator
     {
         if (! $this->project instanceof Project) {
@@ -134,7 +150,7 @@ class Dashboard extends Component
         ]);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\View
     {
         return view('livewire.external.dashboard');
     }
@@ -149,6 +165,9 @@ class Dashboard extends Component
         return sprintf('external_portal_authenticated_%s', $this->token);
     }
 
+    /**
+     * @return LengthAwarePaginator<int, mixed>
+     */
     private function emptyPaginator(string $pageName): LengthAwarePaginator
     {
         return new Paginator([], 0, 10, 1, [

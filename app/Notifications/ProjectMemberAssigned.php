@@ -21,6 +21,9 @@ class ProjectMemberAssigned extends Notification implements ShouldQueue
         private readonly ?User $assignedBy = null,
     ) {}
 
+    /**
+     * @return array<int, string>
+     */
     public function via(object $notifiable): array
     {
         return ['database', 'mail'];
@@ -28,7 +31,7 @@ class ProjectMemberAssigned extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $assignedBy = $this->assignedBy?->name ?? __('the project team');
+        $assignedBy = $this->assignedBy->name ?? __('the project team');
 
         return (new MailMessage)
             ->subject(__('You were added to :project', ['project' => $this->project->name]))
@@ -41,6 +44,9 @@ class ProjectMemberAssigned extends Notification implements ShouldQueue
             ->line(__('Let the team know if you have any questions!'));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(object $notifiable): array
     {
         return [

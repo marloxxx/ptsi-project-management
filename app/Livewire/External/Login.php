@@ -82,7 +82,7 @@ class Login extends Component
         $this->redirectRoute('external.dashboard', ['token' => $this->token]);
     }
 
-    public function render()
+    public function render(): \Illuminate\Contracts\View\View
     {
         return view('livewire.external.login');
     }

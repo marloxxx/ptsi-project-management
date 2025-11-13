@@ -22,6 +22,9 @@ class TicketCommentAdded extends Notification implements ShouldQueue
         private readonly TicketComment $comment,
     ) {}
 
+    /**
+     * @return array<int, string>
+     */
     public function via(object $notifiable): array
     {
         return ['database', 'mail'];
@@ -29,7 +32,7 @@ class TicketCommentAdded extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $author = $this->comment->author?->name ?? __('Someone');
+        $author = $this->comment->author->name ?? __('Someone');
         $ticketName = $this->ticket->name;
 
         return (new MailMessage)
@@ -44,6 +47,9 @@ class TicketCommentAdded extends Notification implements ShouldQueue
             ->line(__('Thank you for staying up to date!'));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(object $notifiable): array
     {
         return [

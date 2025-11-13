@@ -64,13 +64,13 @@ class ExternalPortalService implements ExternalPortalServiceInterface
         $totalTickets = (int) $ticketsQuery->count();
 
         $completedTickets = (int) $ticketsQuery
-            ->whereHas('status', static fn($query) => $query->where('is_completed', true))
+            ->whereHas('status', static fn ($query) => $query->where('is_completed', true))
             ->count();
 
         $overdueTickets = (int) Ticket::query()
             ->where('project_id', $project->getKey())
             ->whereDate('due_date', '<', Carbon::today())
-            ->whereHas('status', static fn($query) => $query->where('is_completed', false))
+            ->whereHas('status', static fn ($query) => $query->where('is_completed', false))
             ->count();
 
         $newThisWeek = (int) Ticket::query()
@@ -81,7 +81,7 @@ class ExternalPortalService implements ExternalPortalServiceInterface
         $completedThisWeek = (int) Ticket::query()
             ->where('project_id', $project->getKey())
             ->where('updated_at', '>=', Carbon::now()->subDays(7))
-            ->whereHas('status', static fn($query) => $query->where('is_completed', true))
+            ->whereHas('status', static fn ($query) => $query->where('is_completed', true))
             ->count();
 
         $progress = $totalTickets > 0
@@ -98,9 +98,14 @@ class ExternalPortalService implements ExternalPortalServiceInterface
         ];
     }
 
+    /**
+     * @return Collection<int, array{id: int, name: string, color: string|null, count: int}>
+     *
+     * @phpstan-return Collection<int, array{id: int, name: string, color: string|null, count: int}>
+     */
     public function ticketsByStatus(Project $project): Collection
     {
-        return TicketStatus::query()
+        $statuses = TicketStatus::query()
             ->select(['id', 'name', 'color'])
             ->where('project_id', $project->getKey())
             ->withCount([
@@ -110,13 +115,17 @@ class ExternalPortalService implements ExternalPortalServiceInterface
             ])
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->get()
-            ->map(fn(TicketStatus $status): array => [
-                'id' => (int) $status->getKey(),
-                'name' => $status->name,
-                'color' => $status->color,
-                'count' => (int) $status->tickets_count,
-            ]);
+            ->get();
+
+        $mapped = $statuses->map(fn (TicketStatus $status): array => [
+            'id' => (int) $status->getKey(),
+            'name' => $status->name,
+            'color' => $status->color ?? null,
+            'count' => (int) $status->tickets_count,
+        ]);
+
+        // @phpstan-ignore-next-line
+        return $mapped;
     }
 
     public function ticketPriorities(): Collection
@@ -126,13 +135,16 @@ class ExternalPortalService implements ExternalPortalServiceInterface
                 ->select(['id', 'name'])
                 ->orderBy('name')
                 ->get()
-                ->map(fn($priority): array => [
+                ->map(fn ($priority): array => [
                     'id' => (int) $priority->getKey(),
                     'name' => $priority->name,
                 ])
         );
     }
 
+    /**
+     * @return LengthAwarePaginator<int, Ticket>
+     */
     public function paginatedTickets(Project $project, array $filters = []): LengthAwarePaginator
     {
         $query = Ticket::query()
@@ -163,6 +175,9 @@ class ExternalPortalService implements ExternalPortalServiceInterface
         return $query->paginate(10, ['*'], $pageName);
     }
 
+    /**
+     * @return LengthAwarePaginator<int, TicketHistory>
+     */
     public function recentActivities(Project $project, array $filters = []): LengthAwarePaginator
     {
         $pageName = $filters['page_name'] ?? 'activities';

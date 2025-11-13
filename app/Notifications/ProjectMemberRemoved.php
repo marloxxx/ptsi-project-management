@@ -21,6 +21,9 @@ class ProjectMemberRemoved extends Notification implements ShouldQueue
         private readonly ?User $removedBy = null,
     ) {}
 
+    /**
+     * @return array<int, string>
+     */
     public function via(object $notifiable): array
     {
         return ['database', 'mail'];
@@ -28,7 +31,7 @@ class ProjectMemberRemoved extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $removedBy = $this->removedBy?->name ?? __('the project team');
+        $removedBy = $this->removedBy->name ?? __('the project team');
 
         return (new MailMessage)
             ->subject(__('You were removed from :project', ['project' => $this->project->name]))
@@ -40,6 +43,9 @@ class ProjectMemberRemoved extends Notification implements ShouldQueue
             ->line(__('If you believe this was a mistake, please reach out to the project owner.'));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(object $notifiable): array
     {
         return [
