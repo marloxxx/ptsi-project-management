@@ -2,12 +2,51 @@ name: CI
 
 on:
   push:
-    branches: ['main', 'dev']
+    branches: ['main', 'master', 'dev']
   pull_request:
-    branches: ['main', 'dev']
+    branches: ['main', 'master', 'dev']
 
 jobs:
-  test:
+  pint:
+    name: Laravel Pint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo
+          coverage: none
+
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+
+      - name: Run Pint
+        run: ./vendor/bin/pint --test
+
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo
+          coverage: none
+
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=1G
+
+  tests:
+    name: PHPUnit Tests
     runs-on: ubuntu-latest
 
     services:
@@ -26,8 +65,8 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
-          extensions: mbstring, dom, fileinfo, mysql
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, mysql, pdo, pdo_mysql
           coverage: none
 
       - name: Copy .env
@@ -51,15 +90,39 @@ jobs:
       - name: Run Migrations
         run: php artisan migrate --force
 
-      - name: Run Lint (Pint)
-        run: ./vendor/bin/pint --test
-
-      - name: Static Analysis (PHPStan)
-
-        run: ./vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=1G
-
       - name: Run Tests
         run: php artisan test
+
+  security:
+    name: Composer Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo
+          coverage: none
+
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+
+      - name: Run Security Audit
+        run: composer audit || true
+
+  build:
+    name: Build Assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install NPM Dependencies
         run: npm ci
@@ -68,9 +131,12 @@ jobs:
         run: npm run build
 
   deploy:
-    needs: test
+    needs: [pint, phpstan, tests, security, build]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://your-production-url.com
 
     steps:
       - name: Deploy Placeholder
