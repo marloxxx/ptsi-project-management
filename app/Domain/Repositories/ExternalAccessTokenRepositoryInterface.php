@@ -10,6 +10,8 @@ interface ExternalAccessTokenRepositoryInterface
 {
     public function find(int $id): ?ExternalAccessToken;
 
+    public function findByToken(string $token): ?ExternalAccessToken;
+
     public function findActiveForProject(int $projectId): ?ExternalAccessToken;
 
     /**

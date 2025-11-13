@@ -266,24 +266,26 @@ sudo systemctl restart nginx
 
 ## 🔄 7. Queue Workers (PTSI Ops)
 
-Laravel notifications, email, dan job berat dieksekusi melalui queue. Pastikan worker aktif di setiap server.
+Laravel notifications, email, dan job berat lain dieksekusi melalui queue. Pastikan worker selalu aktif pada setiap environment.
 
-### 7.1 Konfigurasi dasar
+### 7.1 Queue connection
 
 ```env
-QUEUE_CONNECTION=redis   # Database queue bisa dipakai, redis direkomendasikan
+QUEUE_CONNECTION=redis
 REDIS_CLIENT=phpredis
 ```
 
-### 7.2 Perintah manual
+Jika masih menggunakan database queue, pastikan tabel `jobs` dan `failed_jobs` tersedia. Redis direkomendasikan untuk produksi.
+
+### 7.2 Worker command (fallback manual)
 
 ```bash
-php artisan queue:work --queue=default --sleep=3 --tries=3 --timeout=120
+php artisan queue:work --queue=default --sleep=3 --tries=3 --timeout=120 --max-time=3600
 ```
 
-Tambahkan `php artisan queue:restart` di pipeline deploy untuk memuat ulang worker setelah release baru.
+Jalankan `php artisan queue:restart` setelah setiap deploy untuk memuat ulang worker.
 
-### 7.3 Contoh Supervisor
+### 7.3 Konfigurasi Supervisor
 
 File: `/etc/supervisor/conf.d/ptsi-queue.conf`
 
@@ -308,15 +310,13 @@ sudo supervisorctl update
 sudo supervisorctl start ptsi_queue_default:*
 ```
 
-### 7.4 Monitoring
+### 7.4 Monitoring & health-check
 
 ```bash
 sudo supervisorctl status ptsi_queue_default:*
 ```
 
-Gabungkan dengan Slack alert, Horizon, atau metric server untuk mendeteksi antrian tinggi.
-
----
+Kombinasikan dengan Slack alert / Horizon dashboard bila diperlukan. Pastikan log `/var/log/ptsi/queue-default.log` dipantau dan diputar secara berkala.
 
 ## ⚡ 8. Octane Deployment
 

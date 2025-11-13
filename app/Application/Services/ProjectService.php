@@ -15,11 +15,15 @@ use App\Models\ExternalAccessToken;
 use App\Models\Project;
 use App\Models\ProjectNote;
 use App\Models\TicketStatus;
+use App\Models\User;
+use App\Notifications\ProjectMemberAssigned;
+use App\Notifications\ProjectMemberRemoved;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -55,6 +59,8 @@ class ProjectService implements ProjectServiceInterface
 
             if (! empty($memberIds)) {
                 $this->projectRepository->syncMembers($project, $memberIds);
+                $project->load('members');
+                $this->notifyProjectMembersAssigned($project, $memberIds);
             }
 
             $this->seedStatuses($project, $statusPresets);
@@ -86,7 +92,25 @@ class ProjectService implements ProjectServiceInterface
             $project = $this->projectRepository->update($project, $data);
 
             if ($memberIds !== null) {
+                $project->load('members');
+                $currentMemberIds = $project->members
+                    ->pluck('id')
+                    ->map(fn ($id): int => (int) $id)
+                    ->all();
+
+                $addedMemberIds = array_values(array_diff($memberIds, $currentMemberIds));
+                $removedMemberIds = array_values(array_diff($currentMemberIds, $memberIds));
+
                 $this->projectRepository->syncMembers($project, $memberIds);
+                $project->load('members');
+
+                if ($addedMemberIds !== []) {
+                    $this->notifyProjectMembersAssigned($project, $addedMemberIds);
+                }
+
+                if ($removedMemberIds !== []) {
+                    $this->notifyProjectMembersRemoved($project, $removedMemberIds);
+                }
             }
 
             $projectWithRelations = $project->fresh(['ticketStatuses', 'members']);
@@ -121,6 +145,58 @@ class ProjectService implements ProjectServiceInterface
 
             return $this->projectRepository->delete($project);
         });
+    }
+
+    /**
+     * @param  array<int, int>  $memberIds
+     */
+    private function notifyProjectMembersAssigned(Project $project, array $memberIds): void
+    {
+        if ($memberIds === []) {
+            return;
+        }
+
+        $actor = Auth::user();
+        $actorUser = $actor instanceof User ? $actor : null;
+
+        $recipients = User::query()
+            ->whereIn('id', $memberIds)
+            ->get()
+            ->when($actorUser, fn (Collection $users): Collection => $users->reject(
+                static fn (User $user): bool => $user->is($actorUser)
+            ));
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        Notification::send($recipients, new ProjectMemberAssigned($project, $actorUser));
+    }
+
+    /**
+     * @param  array<int, int>  $memberIds
+     */
+    private function notifyProjectMembersRemoved(Project $project, array $memberIds): void
+    {
+        if ($memberIds === []) {
+            return;
+        }
+
+        $actor = Auth::user();
+        $actorUser = $actor instanceof User ? $actor : null;
+
+        $recipients = User::query()
+            ->whereIn('id', $memberIds)
+            ->get()
+            ->when($actorUser, fn (Collection $users): Collection => $users->reject(
+                static fn (User $user): bool => $user->is($actorUser)
+            ));
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        Notification::send($recipients, new ProjectMemberRemoved($project, $actorUser));
     }
 
     /**

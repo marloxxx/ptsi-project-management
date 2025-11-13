@@ -132,6 +132,11 @@ class DomainServiceProvider extends ServiceProvider
             \App\Domain\Services\AnalyticsServiceInterface::class,
             \App\Application\Services\AnalyticsService::class
         );
+
+        $this->app->bind(
+            \App\Domain\Services\ExternalPortalServiceInterface::class,
+            \App\Application\Services\ExternalPortalService::class
+        );
     }
 
     /**

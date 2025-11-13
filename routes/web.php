@@ -1,6 +1,8 @@
 <?php
 
 use App\Filament\Pages\Auth\Login as FilamentLogin;
+use App\Livewire\External\Dashboard as ExternalDashboard;
+use App\Livewire\External\Login as ExternalLogin;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Route;
 
@@ -24,3 +26,13 @@ if ($filamentLoginRoute = Route::getRoutes()->getByName('filament.admin.auth.log
         }),
     );
 }
+
+Route::prefix('external')
+    ->name('external.')
+    ->group(function (): void {
+        Route::get('{token}', ExternalLogin::class)
+            ->name('login');
+
+        Route::get('{token}/dashboard', ExternalDashboard::class)
+            ->name('dashboard');
+    });

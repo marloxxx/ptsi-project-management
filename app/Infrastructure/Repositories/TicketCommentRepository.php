@@ -26,6 +26,17 @@ class TicketCommentRepository implements TicketCommentRepositoryInterface
         return TicketComment::create($data);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function update(TicketComment $comment, array $data): TicketComment
+    {
+        $comment->fill($data);
+        $comment->save();
+
+        return $comment->fresh();
+    }
+
     public function delete(TicketComment $comment): bool
     {
         return (bool) $comment->delete();
