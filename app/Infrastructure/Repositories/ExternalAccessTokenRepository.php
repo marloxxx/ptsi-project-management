@@ -14,6 +14,11 @@ class ExternalAccessTokenRepository implements ExternalAccessTokenRepositoryInte
         return ExternalAccessToken::find($id);
     }
 
+    public function findByToken(string $token): ?ExternalAccessToken
+    {
+        return ExternalAccessToken::where('access_token', $token)->first();
+    }
+
     public function findActiveForProject(int $projectId): ?ExternalAccessToken
     {
         return ExternalAccessToken::where('project_id', $projectId)

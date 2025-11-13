@@ -11,8 +11,13 @@ use App\Domain\Repositories\TicketStatusRepositoryInterface;
 use App\Domain\Services\TicketServiceInterface;
 use App\Models\Ticket;
 use App\Models\TicketComment;
+use App\Models\User;
+use App\Notifications\TicketCommentAdded;
+use App\Notifications\TicketCommentUpdated;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use RuntimeException;
 
 class TicketService implements TicketServiceInterface
@@ -131,6 +136,7 @@ class TicketService implements TicketServiceInterface
     public function addComment(int $ticketId, array $data): TicketComment
     {
         $ticket = $this->findTicketOrFail($ticketId);
+        $ticket->loadMissing(['project', 'creator', 'assignees']);
 
         $payload = array_merge($data, [
             'ticket_id' => $ticket->id,
@@ -141,7 +147,36 @@ class TicketService implements TicketServiceInterface
             throw new RuntimeException('Comment author is required.');
         }
 
-        return $this->ticketCommentRepository->create($payload);
+        $comment = $this->ticketCommentRepository->create($payload);
+        $comment->load(['author', 'ticket.project', 'ticket.creator', 'ticket.assignees']);
+
+        $this->notifyCommentAdded($comment);
+
+        return $comment;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function updateComment(int $commentId, array $data): TicketComment
+    {
+        $comment = $this->ticketCommentRepository->find($commentId, [
+            'ticket.project',
+            'ticket.creator',
+            'ticket.assignees',
+            'author',
+        ]);
+
+        if (! $comment instanceof TicketComment) {
+            throw new RuntimeException('Ticket comment not found.');
+        }
+
+        $comment = $this->ticketCommentRepository->update($comment, $data);
+        $comment->load(['author', 'ticket.project', 'ticket.creator', 'ticket.assignees']);
+
+        $this->notifyCommentUpdated($comment);
+
+        return $comment;
     }
 
     public function deleteComment(int $commentId): bool
@@ -175,5 +210,73 @@ class TicketService implements TicketServiceInterface
             'to_ticket_status_id' => $toStatusId,
             'note' => $note,
         ]);
+    }
+
+    private function notifyCommentAdded(TicketComment $comment): void
+    {
+        $ticket = $comment->ticket;
+
+        if (! $ticket instanceof Ticket) {
+            $ticket = $this->findTicketOrFail((int) $comment->ticket_id);
+            $ticket->loadMissing(['project', 'creator', 'assignees']);
+            $comment->setRelation('ticket', $ticket);
+        }
+
+        $recipients = $this->resolveCommentRecipients($ticket, (int) $comment->user_id);
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        Notification::send($recipients, new TicketCommentAdded($ticket, $comment));
+    }
+
+    private function notifyCommentUpdated(TicketComment $comment): void
+    {
+        $ticket = $comment->ticket;
+
+        if (! $ticket instanceof Ticket) {
+            $ticket = $this->findTicketOrFail((int) $comment->ticket_id);
+            $ticket->loadMissing(['project', 'creator', 'assignees']);
+            $comment->setRelation('ticket', $ticket);
+        }
+
+        $recipients = $this->resolveCommentRecipients($ticket, (int) $comment->user_id);
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        Notification::send($recipients, new TicketCommentUpdated($ticket, $comment));
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    private function resolveCommentRecipients(Ticket $ticket, int $actorId): Collection
+    {
+        $recipients = collect();
+
+        if ($ticket->creator instanceof User && $ticket->creator->getKey() !== $actorId) {
+            $recipients->push($ticket->creator);
+        }
+
+        $assignedUsers = $ticket->assignees()
+            ->where('users.id', '!=', $actorId)
+            ->get();
+
+        $commenters = $ticket->comments()
+            ->where('ticket_comments.user_id', '!=', $actorId)
+            ->with('author')
+            ->get()
+            ->map(fn (TicketComment $comment): ?User => $comment->author)
+            ->filter();
+
+        return $recipients
+            ->merge($assignedUsers)
+            ->merge($commenters)
+            ->filter(fn ($user): bool => $user instanceof User)
+            ->unique(fn (User $user): int => (int) $user->getKey())
+            ->values();
     }
 }

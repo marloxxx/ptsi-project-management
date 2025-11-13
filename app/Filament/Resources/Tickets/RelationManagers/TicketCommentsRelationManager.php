@@ -76,10 +76,7 @@ class TicketCommentsRelationManager extends RelationManager
      */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        /** @var TicketComment $record */
-        $record->update($data);
-
-        return $record->fresh();
+        return $this->ticketService->updateComment((int) $record->getKey(), $data);
     }
 
     protected function handleRecordDeletion(Model $record): void
