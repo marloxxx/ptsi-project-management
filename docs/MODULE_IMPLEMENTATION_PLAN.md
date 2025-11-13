@@ -107,9 +107,9 @@ This plan tracks how features from the DewaKoding Project Management system will
 - **Objectives**
   - Update docs to reflect PTSI ownership and new setup steps.
 - **Tasks**
-  - [ ] Align README, Quick Start, and architecture docs with new modules.
-  - [ ] Provide deployment checklist (queues, OAuth, Octane optional).
-  - [ ] Add change log entries summarizing migration from Dewakoding base.
+  - [x] Align README, Quick Start, dan architecture/docs dev workflow dengan modul baru.
+  - [x] Provide deployment checklist (queues, OAuth, Octane optional).
+  - [ ] Add change log entries summarizing migration dari Dewakoding base.
 
 ## Tracking & Milestones
 - Milestone 1: Foundation + Core Domain completed and tested.
