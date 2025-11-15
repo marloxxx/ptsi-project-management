@@ -61,7 +61,7 @@ class TicketsPerProjectChart extends ChartWidget
 
         $colors = collect($labels)
             ->keys()
-            ->map(fn(int $index): string => $palette[$index % count($palette)])
+            ->map(fn (int $index): string => $palette[$index % count($palette)])
             ->all();
 
         return [

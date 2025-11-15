@@ -15,6 +15,7 @@ class StatsOverview extends BaseWidget
 
     protected static ?int $sort = 1;
 
+    /** @phpstan-ignore-next-line */
     protected int|string|array $columnSpan = [
         'default' => 1,
         'md' => 'full',

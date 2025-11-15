@@ -56,7 +56,7 @@ class RecentActivityTable extends BaseWidget
                     ->label('Activity')
                     ->state(function (TicketHistory $record): string {
                         $ticketName = $record->ticket->name ?? 'Unknown ticket';
-                        $trimmed = mb_strlen($ticketName) > 40 ? mb_substr($ticketName, 0, 40) . '…' : $ticketName;
+                        $trimmed = mb_strlen($ticketName) > 40 ? mb_substr($ticketName, 0, 40).'…' : $ticketName;
                         $userName = $record->actor->name ?? 'Unknown user';
 
                         return sprintf('<span class="text-primary-600 font-medium">%s</span> updated "%s"', e($userName), e($trimmed));
@@ -79,7 +79,7 @@ class RecentActivityTable extends BaseWidget
                     ->label('Status')
                     ->badge()
                     ->alignEnd()
-                    ->color(fn(TicketHistory $record): string => $record->toStatus?->is_completed ? 'success' : 'primary'),
+                    ->color(fn (TicketHistory $record): string => $record->toStatus?->is_completed ? 'success' : 'primary'),
             ])
             ->filters([
                 Filter::make('date_range')
@@ -89,18 +89,18 @@ class RecentActivityTable extends BaseWidget
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when($data['start_date'] ?? null, fn(Builder $inner, string $date): Builder => $inner->whereDate('created_at', '>=', $date))
-                            ->when($data['end_date'] ?? null, fn(Builder $inner, string $date): Builder => $inner->whereDate('created_at', '<=', $date));
+                            ->when($data['start_date'] ?? null, fn (Builder $inner, string $date): Builder => $inner->whereDate('created_at', '>=', $date))
+                            ->when($data['end_date'] ?? null, fn (Builder $inner, string $date): Builder => $inner->whereDate('created_at', '<=', $date));
                     })
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
 
                         if ($data['start_date'] ?? null) {
-                            $indicators[] = 'From: ' . Carbon::parse($data['start_date'])->format('M d, Y');
+                            $indicators[] = 'From: '.Carbon::parse($data['start_date'])->format('M d, Y');
                         }
 
                         if ($data['end_date'] ?? null) {
-                            $indicators[] = 'To: ' . Carbon::parse($data['end_date'])->format('M d, Y');
+                            $indicators[] = 'To: '.Carbon::parse($data['end_date'])->format('M d, Y');
                         }
 
                         return $indicators;
@@ -108,7 +108,7 @@ class RecentActivityTable extends BaseWidget
                 Filter::make('today')
                     ->label('Today')
                     ->toggle()
-                    ->query(fn(Builder $query): Builder => $query->whereDate('created_at', today())),
+                    ->query(fn (Builder $query): Builder => $query->whereDate('created_at', today())),
                 SelectFilter::make('actor')
                     ->relationship('actor', 'name')
                     ->searchable()
@@ -119,11 +119,11 @@ class RecentActivityTable extends BaseWidget
                 Action::make('view')
                     ->icon('heroicon-m-arrow-top-right-on-square')
                     ->tooltip('Open ticket')
-                    ->url(fn(TicketHistory $record): ?string => $record->ticket
+                    ->url(fn (TicketHistory $record): ?string => $record->ticket
                         ? route('filament.admin.resources.tickets.view', $record->ticket)
                         : null)
                     ->openUrlInNewTab()
-                    ->visible(fn(TicketHistory $record): bool => $record->ticket !== null),
+                    ->visible(fn (TicketHistory $record): bool => $record->ticket !== null),
             ])
             ->paginated([5, 25, 50])
             ->poll($this->pollingInterval)

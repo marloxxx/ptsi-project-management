@@ -10,6 +10,7 @@ class AccountWidget extends Widget
 {
     protected string $view = 'filament.widgets.account-widget';
 
+    /** @phpstan-ignore-next-line */
     protected int|string|array $columnSpan = [
         'default' => 1,
         'md' => 'full',
