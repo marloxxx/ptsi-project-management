@@ -383,9 +383,9 @@ MIT © PT Surveyor Indonesia — Divisi Teknologi Informasi
 
 ## 🆘 Support
 
-- 📧 Email: ti@ptsi.co.id
+- 📧 Email: app.dev@ptsi.co.id
 - 📚 Documentation: [docs/INDEX.md](./docs/INDEX.md)
-- 🐛 Issues: [GitHub Issues](https://github.com/ptsi-digital/laravel-starter-kit-ptsi/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/marloxxx/ptsi-project-management/issues)
 
 ### Additional Features  
 - 📖 **API Documentation**: Auto-generated with Scramble at `/docs/api`
@@ -399,14 +399,12 @@ MIT © PT Surveyor Indonesia — Divisi Teknologi Informasi
   - 🏛️ [Architecture Guide](./ARCHITECTURE.md) - Clean architecture patterns
   - 🛠️ [Setup Guide](./SETUP.md) - Installation & configuration
   - 📋 [Features Checklist](./FEATURES.md) - Complete features list
-  - 🤝 [Contributing Guide](./CONTRIBUTING.md) - How to contribute
   - 📝 [Changelog](./CHANGELOG.md) - Version history
 
 ---
 
 ## 🙏 Credits
 
-- **Kaido Kit Original:** [siubie/kaido-kit](https://github.com/siubie/kaido-kit)
 - **Laravel:** Taylor Otwell & Laravel Team
 - **Filament:** Dan Harrin & Filament Team
 - **PTSI Digital Team**
