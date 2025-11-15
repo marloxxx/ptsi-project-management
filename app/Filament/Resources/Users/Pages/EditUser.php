@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Users\Pages;
 
 use App\Domain\Services\UserServiceInterface;
 use App\Filament\Resources\Users\UserResource;
+use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
@@ -26,9 +27,16 @@ class EditUser extends EditRecord
         $this->userService = $userService;
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        $roles = $data['roles'] ?? null;
+        if (! $record instanceof User) {
+            throw new \InvalidArgumentException('Expected User model.');
+        }
+
+        $roles = isset($data['roles']) ? array_map('strval', (array) $data['roles']) : null;
         unset($data['roles']);
 
         $this->userService->update((int) $record->getKey(), $data, $roles);
@@ -38,24 +46,44 @@ class EditUser extends EditRecord
 
     protected function getHeaderActions(): array
     {
+        $record = $this->getUserRecord();
+
         return [
             ViewAction::make()
-                ->authorize(fn (): bool => Auth::user()?->can('view', $this->getRecord()) ?? false),
+                ->authorize(fn (): bool => self::currentUser()?->can('view', $record) ?? false),
             Impersonate::make()
-                ->record($this->getRecord())
-                ->visible(fn (): bool => Auth::user()?->can('users.view') ?? false),
+                ->record($record)
+                ->visible(fn (): bool => self::currentUser()?->can('users.view') ?? false),
             DeleteAction::make()
-                ->authorize(fn (): bool => Auth::user()?->can('delete', $this->getRecord()) ?? false)
+                ->authorize(fn (): bool => self::currentUser()?->can('delete', $record) ?? false)
                 ->requiresConfirmation()
-                ->action(fn () => $this->userService->delete((int) $this->getRecord()->getKey())),
+                ->action(fn () => $this->userService->delete((int) $record->getKey())),
             ForceDeleteAction::make()
-                ->authorize(fn (): bool => Auth::user()?->can('users.force-delete') ?? false)
+                ->authorize(fn (): bool => self::currentUser()?->can('users.force-delete') ?? false)
                 ->requiresConfirmation()
-                ->action(fn () => $this->userService->forceDelete((int) $this->getRecord()->getKey())),
+                ->action(fn () => $this->userService->forceDelete((int) $record->getKey())),
             RestoreAction::make()
-                ->authorize(fn (): bool => Auth::user()?->can('users.restore') ?? false)
-                ->visible(fn (): bool => $this->getRecord()->trashed())
-                ->action(fn () => $this->userService->restore((int) $this->getRecord()->getKey())),
+                ->authorize(fn (): bool => self::currentUser()?->can('users.restore') ?? false)
+                ->visible(fn () => $record->trashed())
+                ->action(fn () => $this->userService->restore((int) $record->getKey())),
         ];
+    }
+
+    private function getUserRecord(): User
+    {
+        /** @var User $record */
+        $record = $this->getRecord();
+
+        return $record;
+    }
+
+    /**
+     * Get the current user.
+     */
+    private static function currentUser(): ?User
+    {
+        $user = Auth::user();
+
+        return $user instanceof User ? $user : null;
     }
 }

@@ -3,57 +3,60 @@
         $state = $this->form->getState();
         $avatarPath = $state['avatar'] ?? null;
         $avatarUrl = $avatarPath ? \Illuminate\Support\Facades\Storage::disk('public')->url($avatarPath) : null;
-    $user = auth()->user();
+        $user = auth()->user();
 
-    $fullName = $state['full_name'] ?? ($user->full_name ?? $user->name);
-    $position = $state['position'] ?? ($user->position ?? '—');
-    $status = $state['status'] ?? ($user->status ?? 'active');
-    $statusLabel = match ($status) {
-        'active' => 'Aktif',
-        'inactive' => 'Nonaktif',
-        default => ucfirst($status),
-    };
-    $statusClasses = match ($status) {
-        'active' => 'bg-emerald-100 text-emerald-700 ring-emerald-500/30',
-        'inactive' => 'bg-rose-100 text-rose-700 ring-rose-500/30',
-        default => 'bg-slate-100 text-slate-700 ring-slate-500/30',
-    };
-    $summaryItems = [
-        [
-            'label' => 'Email',
-            'value' => $state['email'] ?? $user->email,
-            'icon' => 'heroicon-o-envelope',
-        ],
-        [
-            'label' => 'Username',
-            'value' => $state['username'] ?? ($user->username ?? '—'),
-            'icon' => 'heroicon-o-at-symbol',
-        ],
-        [
-            'label' => 'NIK',
-            'value' => $state['nik'] ?? $user->nik ?? '—',
-            'icon' => 'heroicon-o-identification',
-        ],
-        [
-            'label' => 'Nomor Telepon',
-            'value' => $state['phone'] ?? $user->phone ?? '—',
-            'icon' => 'heroicon-o-phone',
-        ],
-        [
-            'label' => 'Kota',
-            'value' => $state['city'] ?? $user->city ?? '—',
-            'icon' => 'heroicon-o-building-office-2',
-        ],
-        [
-            'label' => 'Tanggal Lahir',
-            'value' => isset($state['date_of_birth']) && $state['date_of_birth']
-                ? \Illuminate\Support\Carbon::parse($state['date_of_birth'])
-                    ->locale(app()->getLocale())
-                    ->translatedFormat('d F Y')
-                : optional($user->date_of_birth)?->locale(app()->getLocale())?->translatedFormat('d F Y') ?? '—',
-            'icon' => 'heroicon-o-calendar-days',
-        ],
-    ];
+        $fullName = $state['full_name'] ?? ($user->full_name ?? $user->name);
+        $position = $state['position'] ?? ($user->position ?? '—');
+        $status = $state['status'] ?? ($user->status ?? 'active');
+        $statusLabel = match ($status) {
+            'active' => 'Aktif',
+            'inactive' => 'Nonaktif',
+            default => ucfirst($status),
+        };
+        $statusClasses = match ($status) {
+            'active' => 'bg-emerald-100 text-emerald-700 ring-emerald-500/30',
+            'inactive' => 'bg-rose-100 text-rose-700 ring-rose-500/30',
+            default => 'bg-slate-100 text-slate-700 ring-slate-500/30',
+        };
+        $summaryItems = [
+            [
+                'label' => 'Email',
+                'value' => $state['email'] ?? $user->email,
+                'icon' => 'heroicon-o-envelope',
+            ],
+            [
+                'label' => 'Username',
+                'value' => $state['username'] ?? ($user->username ?? '—'),
+                'icon' => 'heroicon-o-at-symbol',
+            ],
+            [
+                'label' => 'NIK',
+                'value' => $state['nik'] ?? ($user->nik ?? '—'),
+                'icon' => 'heroicon-o-identification',
+            ],
+            [
+                'label' => 'Nomor Telepon',
+                'value' => $state['phone'] ?? ($user->phone ?? '—'),
+                'icon' => 'heroicon-o-phone',
+            ],
+            [
+                'label' => 'Kota',
+                'value' => $state['city'] ?? ($user->city ?? '—'),
+                'icon' => 'heroicon-o-building-office-2',
+            ],
+            [
+                'label' => 'Tanggal Lahir',
+                'value' =>
+                    isset($state['date_of_birth']) && $state['date_of_birth']
+                        ? \Illuminate\Support\Carbon::parse($state['date_of_birth'])
+                            ->locale(app()->getLocale())
+                            ->translatedFormat('d F Y')
+                        : optional($user->date_of_birth)
+                                ?->locale(app()->getLocale())
+                                ?->translatedFormat('d F Y') ?? '—',
+                'icon' => 'heroicon-o-calendar-days',
+            ],
+        ];
     @endphp
 
     <div class="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#0f2557] via-[#1e3a8a] to-[#3b82f6] p-6">

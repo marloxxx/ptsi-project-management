@@ -12,11 +12,16 @@ interface UnitRepositoryInterface
 {
     /**
      * Get all unit records.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\Unit>
      */
     public function all(?string $status = null): Collection;
 
     /**
      * Paginate units with optional filters.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return LengthAwarePaginator<int, Unit>
      */
     public function paginate(int $perPage = 15, array $filters = []): LengthAwarePaginator;
 
@@ -27,11 +32,15 @@ interface UnitRepositoryInterface
 
     /**
      * Create new unit record.
+     *
+     * @param  array<string, mixed>  $data
      */
     public function create(array $data): Unit;
 
     /**
      * Update the given unit.
+     *
+     * @param  array<string, mixed>  $data
      */
     public function update(Unit $unit, array $data): Unit;
 
@@ -42,6 +51,8 @@ interface UnitRepositoryInterface
 
     /**
      * Get units for select options.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, \App\Models\Unit>
      */
     public function options(?string $status = 'active'): Collection;
 

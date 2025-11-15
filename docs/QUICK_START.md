@@ -36,11 +36,12 @@ php artisan shield:super-admin
 
 ```bash
 # Option 1: Simple
-php artisan serve
-npm run dev
+composer run dev  # server + queue + vite + log stream
 
-# Option 2: Full stack (recommended)
-composer run dev
+# Option 2: Manual
+php artisan serve
+php artisan queue:work --queue=default --sleep=3 --tries=3
+npm run dev
 ```
 
 Visit: **http://localhost:8000/admin**
@@ -109,7 +110,10 @@ php artisan shield:generate --all
 - ✅ Activity Logging
 - ✅ Media Library
 - ✅ Excel Import/Export
-- ✅ API Documentation
+- ✅ Kanban Board & Timeline (Gantt)
+- ✅ Analytics Dashboard (stats, charts, user load)
+- ✅ External Client Portal (token-based access)
+- ✅ API Documentation & Swagger via Scramble
 
 ### Developer Tools
 - ✅ Laravel Boost (AI Assistant)
@@ -125,6 +129,7 @@ php artisan shield:generate --all
 - ✅ Service Pattern
 - ✅ DTO Pattern
 - ✅ Policy-based Authorization
+- ✅ Queue-first notifications
 
 ---
 
@@ -156,10 +161,11 @@ Dark mode enabled by default ✨
 3. **Customize**
    - Update `config/filament-shield.php` for permissions
    - Update `config/app.php` for app settings
-   - Add your business modules
+   - Add your business modules dan queue worker
 
 4. **Deploy**
    - Read [SETUP.md](../SETUP.md) for production deployment
+   - Siapkan Supervisor (lihat [Deployment Guide](./DEPLOYMENT_GUIDE.md))
 
 ---
 

@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Units\Tables;
 
 use App\Domain\Services\UnitServiceInterface;
 use App\Models\Unit;
+use App\Models\User;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -70,10 +71,10 @@ class UnitsTable
             ->recordTitleAttribute('name')
             ->recordActions([
                 EditAction::make()
-                    ->authorize(fn (Unit $record): bool => Auth::user()?->can('update', $record) ?? false),
+                    ->authorize(fn (Unit $record): bool => self::currentUser()?->can('update', $record) ?? false),
                 DeleteAction::make()
                     ->requiresConfirmation()
-                    ->authorize(fn (Unit $record): bool => Auth::user()?->can('delete', $record) ?? false)
+                    ->authorize(fn (Unit $record): bool => self::currentUser()?->can('delete', $record) ?? false)
                     ->action(fn (Unit $record, UnitServiceInterface $unitService) => $unitService->delete($record))
                     ->successNotificationTitle('Unit deleted'),
             ])
@@ -81,7 +82,7 @@ class UnitsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
                         ->requiresConfirmation()
-                        ->authorize(fn (): bool => Auth::user()?->can('units.delete') ?? false)
+                        ->authorize(fn (): bool => self::currentUser()?->can('units.delete') ?? false)
                         ->action(
                             fn (Collection $records, UnitServiceInterface $unitService) => $records->each(
                                 fn (Unit $unit) => $unitService->delete($unit)
@@ -90,5 +91,15 @@ class UnitsTable
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
+    }
+
+    /**
+     * Get the current user.
+     */
+    private static function currentUser(): ?User
+    {
+        $user = Auth::user();
+
+        return $user instanceof User ? $user : null;
     }
 }

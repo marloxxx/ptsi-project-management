@@ -18,6 +18,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use UnitEnum;
@@ -36,52 +37,46 @@ class UserResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return static::canViewAny();
+        return self::canViewAny();
     }
 
     public static function canViewAny(): bool
     {
-        return static::currentUser()?->can('users.view') ?? false;
+        return self::currentUser()?->can('users.view') ?? false;
     }
 
     public static function canCreate(): bool
     {
-        return static::currentUser()?->can('users.create') ?? false;
+        return self::currentUser()?->can('users.create') ?? false;
     }
 
-    public static function canEdit($record): bool
+    public static function canEdit(Model $record): bool
     {
-        return static::currentUser()?->can('update', $record) ?? false;
+        /** @var User $record */
+        return $record instanceof User ? self::currentUser()?->can('update', $record) ?? false : false;
     }
 
-    public static function canDelete($record): bool
+    public static function canDelete(Model $record): bool
     {
-        return static::currentUser()?->can('delete', $record) ?? false;
+        /** @var User $record */
+        return $record instanceof User ? self::currentUser()?->can('delete', $record) ?? false : false;
     }
 
     public static function canDeleteAny(): bool
     {
-        return static::currentUser()?->can('users.delete') ?? false;
+        return self::currentUser()?->can('users.delete') ?? false;
     }
 
-    public static function canForceDelete($record): bool
+    public static function canForceDelete(Model $record): bool
     {
-        return static::currentUser()?->can('users.force-delete') ?? false;
+        /** @var User $record */
+        return $record instanceof User ? self::currentUser()?->can('users.force-delete') ?? false : false;
     }
 
-    public static function canForceDeleteAny(): bool
+    public static function canRestore(Model $record): bool
     {
-        return static::currentUser()?->can('users.force-delete') ?? false;
-    }
-
-    public static function canRestore($record): bool
-    {
-        return static::currentUser()?->can('users.restore') ?? false;
-    }
-
-    public static function canRestoreAny(): bool
-    {
-        return static::currentUser()?->can('users.restore') ?? false;
+        /** @var User $record */
+        return $record instanceof User ? self::currentUser()?->can('users.restore') ?? false : false;
     }
 
     public static function form(Schema $schema): Schema
@@ -116,6 +111,9 @@ class UserResource extends Resource
         ];
     }
 
+    /**
+     * @return Builder<User>
+     */
     public static function getRecordRouteBindingEloquentQuery(): Builder
     {
         return parent::getRecordRouteBindingEloquentQuery()
@@ -144,6 +142,9 @@ class UserResource extends Resource
         return (string) static::getModel()::count();
     }
 
+    /**
+     * Get the current user.
+     */
     private static function currentUser(): ?User
     {
         $user = Auth::user();

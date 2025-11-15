@@ -228,16 +228,18 @@ git push origin v1.1.0
 
 ## 🧩 10. Developer Local Workflow
 
-| Tujuan                 | Perintah                                          |
-| ---------------------- | ------------------------------------------------- |
-| Install dependensi     | `composer install && npm ci`                      |
-| Generate key & migrate | `php artisan key:generate && php artisan migrate` |
-| Jalankan app dev       | `php artisan serve`                               |
-| Jalankan vite          | `npm run dev`                                     |
-| Jalankan test          | `./vendor/bin/pest`                               |
-| Lint & format          | `./vendor/bin/pint`                               |
-| Static analysis        | `./vendor/bin/phpstan analyse`                    |
-| Build production       | `npm run build`                                   |
+| Tujuan                 | Perintah                                                                 |
+| ---------------------- | ------------------------------------------------------------------------ |
+| Install dependensi     | `composer install && npm ci`                                             |
+| Generate key & migrate | `php artisan key:generate && php artisan migrate --seed`                 |
+| Jalankan stack dev     | `composer run dev` *(server + queue + vite + log stream)*                |
+| Jalankan server saja   | `php artisan serve`                                                      |
+| Jalankan queue manual  | `php artisan queue:work --queue=default --sleep=3 --tries=3 --timeout=120` |
+| Jalankan Vite          | `npm run dev`                                                            |
+| Jalankan test          | `./vendor/bin/pest`                                                      |
+| Lint & format          | `./vendor/bin/pint`                                                      |
+| Static analysis        | `./vendor/bin/phpstan analyse`                                           |
+| Build production       | `npm run build`                                                          |
 
 ---
 
@@ -283,6 +285,7 @@ Semua proyek Laravel PTSI wajib punya:
 * `/CHANGELOG.md` (setiap versi)
 * `/stubs/` (untuk module generator)
 * `/tests/` (minimal unit test tiap use case)
+* Dokumentasi queue worker & external portal di `docs/DEPLOYMENT_GUIDE.md`
 
 ---
 

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Roles\Schemas;
 
+use App\Domain\Services\PermissionCatalogServiceInterface;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Spatie\Permission\Models\Permission;
 
 class RoleForm
 {
@@ -51,11 +51,10 @@ class RoleForm
                     ->schema([
                         CheckboxList::make('permissions')
                             ->label('Permissions')
-                            ->options(fn (): array => Permission::query()->orderBy('name')->pluck('name', 'name')->all())
+                            ->options(fn (PermissionCatalogServiceInterface $catalog): array => $catalog->groupedOptions())
                             ->default([])
                             ->searchable()
-                            ->bulkToggleable()
-                            ->columns(3),
+                            ->columns(2),
                     ])
                     ->columnSpanFull(),
             ]);

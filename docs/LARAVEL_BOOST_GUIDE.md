@@ -1260,3 +1260,53 @@ Check `app/Providers/DomainServiceProvider.php` is registered in `bootstrap/prov
 
 **🚀 Remember: Clean code is not about writing less code, it's about writing code that's easy to understand, maintain, and extend.**
 
+### Relation Manager Pattern (Filament 4)
+
+Gunakan pola konsisten berikut agar Relation Manager tetap tipis dan patuh arsitektur:
+
+- **Schema-based form** – method `form(Schema $schema)` mereturn komponen `Section`, `Grid`, dan `Filament\Forms\Components` untuk menjaga konsistensi tampilan. Hindari memanggil `Form` langsung.
+- **Table actions baru di Filament 4** – gunakan `headerActions()` + `recordActions()` dengan kelas aksi `Filament\Actions\CreateAction`, `EditAction`, `DeleteAction`, `ViewAction`. Jangan lagi memakai helper lama `Tables\Actions\...`.
+- **Service injection** – resolusi service dilakukan di `boot(ServiceInterface $service)`, kemudian panggil metode domain pada `handleRecordCreation` / `handleRecordUpdate` / `handleRecordDeletion`.
+- **Permission checks** – cukup gunakan helper `Auth::user()?->can('resource.permission')` atau policy terkait di method kecil seperti `self::currentUser()` agar mudah diuji.
+- **Array typing** – ketika memanipulasi data relasi (misal member IDs, status preset), gunakan `array_map` + `array_filter` dengan anotasi PHPDoc supaya lolos PHPStan level tinggi.
+
+Contoh diterapkan di `Projects` module:
+
+```php
+class TicketStatusesRelationManager extends RelationManager
+{
+    public function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make('Status Details')
+                ->schema([
+                    Grid::make(['sm' => 2])->schema([
+                        TextInput::make('name')->required(),
+                        ColorPicker::make('color')->default('#2563EB'),
+                    ]),
+                    Toggle::make('is_completed'),
+                ]),
+        ]);
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->headerActions([
+                CreateAction::make()->visible(fn (): bool => self::currentUser()?->can('project-notes.view')),
+            ])
+            ->recordActions([
+                EditAction::make()->visible(fn (): bool => self::currentUser()?->can('project-notes.view')),
+                DeleteAction::make()->visible(fn (): bool => self::currentUser()?->can('project-notes.view'))->requiresConfirmation(),
+            ]);
+    }
+
+    protected function handleRecordCreation(array $data): Model
+    {
+        return $this->projectService->addStatus($this->resolveProjectId(), $data);
+    }
+}
+```
+
+> 📌 Selalu tulis unit / feature test untuk relation manager baru (misal memanggil Livewire class, memastikan permission bekerja, dan service dipanggil).
+

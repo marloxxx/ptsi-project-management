@@ -139,29 +139,43 @@ class MakeModuleCommand extends Command
         return <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Repositories;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @template TModel of Model
+ */
 interface {$moduleName}RepositoryInterface
 {
     /**
      * Get all {$moduleName} records.
+     *
+     * @return Collection<int, TModel>
      */
     public function all(): Collection;
 
     /**
      * Find {$moduleName} by ID.
      */
-    public function find(int \$id);
+    public function find(int \$id): ?Model;
 
     /**
      * Create new {$moduleName}.
+     *
+     * @param array<string, mixed> \$data
+     *
+     * @return TModel
      */
-    public function create(array \$data);
+    public function create(array \$data): Model;
 
     /**
      * Update {$moduleName}.
+     *
+     * @param array<string, mixed> \$data
      */
     public function update(int \$id, array \$data): bool;
 
@@ -179,47 +193,56 @@ PHP;
         return <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Repositories;
 
 use App\Domain\Repositories\\{$moduleName}RepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use LogicException;
 
+/**
+ * @implements {$moduleName}RepositoryInterface<Model>
+ */
 class {$moduleName}Repository implements {$moduleName}RepositoryInterface
 {
     /**
      * Get all {$moduleName} records.
+     *
+     * @return Collection<int, Model>
      */
     public function all(): Collection
     {
-        // TODO: Implement with your Model
-        return collect();
+        throw new LogicException('Method {$moduleName}Repository::all() has not been implemented yet.');
     }
 
     /**
      * Find {$moduleName} by ID.
      */
-    public function find(int \$id)
+    public function find(int \$id): ?Model
     {
-        // TODO: Implement with your Model
-        return null;
+        throw new LogicException('Method {$moduleName}Repository::find() has not been implemented yet.');
     }
 
     /**
      * Create new {$moduleName}.
+     *
+     * @param array<string, mixed> \$data
      */
-    public function create(array \$data)
+    public function create(array \$data): Model
     {
-        // TODO: Implement with your Model
-        return null;
+        throw new LogicException('Method {$moduleName}Repository::create() has not been implemented yet.');
     }
 
     /**
      * Update {$moduleName}.
+     *
+     * @param array<string, mixed> \$data
      */
     public function update(int \$id, array \$data): bool
     {
-        // TODO: Implement with your Model
-        return false;
+        throw new LogicException('Method {$moduleName}Repository::update() has not been implemented yet.');
     }
 
     /**
@@ -227,8 +250,7 @@ class {$moduleName}Repository implements {$moduleName}RepositoryInterface
      */
     public function delete(int \$id): bool
     {
-        // TODO: Implement with your Model
-        return false;
+        throw new LogicException('Method {$moduleName}Repository::delete() has not been implemented yet.');
     }
 }
 
@@ -242,29 +264,43 @@ PHP;
         return <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Services;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @template TModel of Model
+ */
 interface {$moduleName}ServiceInterface
 {
     /**
      * Get all {$moduleName} records.
+     *
+     * @return Collection<int, TModel>
      */
     public function all(): Collection;
 
     /**
      * Find {$moduleName} by ID.
      */
-    public function find(int \$id);
+    public function find(int \$id): ?Model;
 
     /**
      * Create new {$moduleName}.
+     *
+     * @param array<string, mixed> \$data
+     *
+     * @return TModel
      */
-    public function create(array \$data);
+    public function create(array \$data): Model;
 
     /**
      * Update {$moduleName}.
+     *
+     * @param array<string, mixed> \$data
      */
     public function update(int \$id, array \$data): bool;
 
@@ -282,21 +318,29 @@ PHP;
         return <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Services;
 
 use App\Domain\Services\\{$moduleName}ServiceInterface;
 use App\Domain\Repositories\\{$moduleName}RepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @implements {$moduleName}ServiceInterface<Model>
+ */
 class {$moduleName}Service implements {$moduleName}ServiceInterface
 {
     public function __construct(
-        protected {$moduleName}RepositoryInterface \$repository
+        private {$moduleName}RepositoryInterface \$repository
     ) {}
 
     /**
      * Get all {$moduleName} records.
+     *
+     * @return Collection<int, Model>
      */
     public function all(): Collection
     {
@@ -306,51 +350,29 @@ class {$moduleName}Service implements {$moduleName}ServiceInterface
     /**
      * Find {$moduleName} by ID.
      */
-    public function find(int \$id)
+    public function find(int \$id): ?Model
     {
         return \$this->repository->find(\$id);
     }
 
     /**
      * Create new {$moduleName}.
+     *
+     * @param array<string, mixed> \$data
      */
-    public function create(array \$data)
+    public function create(array \$data): Model
     {
-        return DB::transaction(function () use (\$data) {
-            \$record = \$this->repository->create(\$data);
-
-            // Log activity
-            activity()
-                ->performedOn(\$record)
-                ->event('created')
-                ->log('{$moduleName} created');
-
-            return \$record;
-        });
+        return DB::transaction(fn () => \$this->repository->create(\$data));
     }
 
     /**
      * Update {$moduleName}.
+     *
+     * @param array<string, mixed> \$data
      */
     public function update(int \$id, array \$data): bool
     {
-        return DB::transaction(function () use (\$id, \$data) {
-            \$record = \$this->repository->find(\$id);
-
-            if (! \$record) {
-                return false;
-            }
-
-            \$this->repository->update(\$id, \$data);
-
-            // Log activity
-            activity()
-                ->performedOn(\$record)
-                ->event('updated')
-                ->log('{$moduleName} updated');
-
-            return true;
-        });
+        return DB::transaction(fn () => \$this->repository->update(\$id, \$data));
     }
 
     /**
@@ -358,21 +380,7 @@ class {$moduleName}Service implements {$moduleName}ServiceInterface
      */
     public function delete(int \$id): bool
     {
-        return DB::transaction(function () use (\$id) {
-            \$record = \$this->repository->find(\$id);
-
-            if (! \$record) {
-                return false;
-            }
-
-            // Log activity before deletion
-            activity()
-                ->performedOn(\$record)
-                ->event('deleted')
-                ->log('{$moduleName} deleted');
-
-            return \$this->repository->delete(\$id);
-        });
+        return DB::transaction(fn () => \$this->repository->delete(\$id));
     }
 }
 
@@ -386,10 +394,13 @@ PHP;
         return <<<PHP
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Policies;
 
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Database\Eloquent\Model;
 
 class {$moduleName}Policy
 {
@@ -406,7 +417,7 @@ class {$moduleName}Policy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User \$user, \$model): bool
+    public function view(User \$user, Model \$model): bool
     {
         return \$user->can('view_{$modelVar}');
     }
@@ -422,7 +433,7 @@ class {$moduleName}Policy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User \$user, \$model): bool
+    public function update(User \$user, Model \$model): bool
     {
         return \$user->can('update_{$modelVar}');
     }
@@ -430,7 +441,7 @@ class {$moduleName}Policy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User \$user, \$model): bool
+    public function delete(User \$user, Model \$model): bool
     {
         return \$user->can('delete_{$modelVar}');
     }
@@ -438,7 +449,7 @@ class {$moduleName}Policy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User \$user, \$model): bool
+    public function restore(User \$user, Model \$model): bool
     {
         return \$user->can('restore_{$modelVar}');
     }
@@ -446,7 +457,7 @@ class {$moduleName}Policy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User \$user, \$model): bool
+    public function forceDelete(User \$user, Model \$model): bool
     {
         return \$user->can('force_delete_{$modelVar}');
     }

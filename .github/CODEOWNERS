@@ -1,2 +1,45 @@
-*  @horas-siregar @ptsi-devops
+# Default owners for everything in the repo
+* @horas-siregar @ptsi-devops
 
+# Application Layer
+/app/Application/ @ptsi-devops
+/app/Domain/ @ptsi-devops
+/app/Infrastructure/ @ptsi-devops
+
+# Models
+/app/Models/ @ptsi-devops
+
+# Filament Resources
+/app/Filament/ @ptsi-devops
+
+# Livewire Components
+/app/Livewire/ @ptsi-devops
+
+# Notifications
+/app/Notifications/ @ptsi-devops
+
+# Database
+/database/migrations/ @ptsi-devops
+/database/factories/ @ptsi-devops
+/database/seeders/ @ptsi-devops
+
+# Configuration
+/config/ @ptsi-devops
+
+# Routes
+/routes/ @ptsi-devops
+
+# Tests
+/tests/ @ptsi-devops
+
+# Documentation
+/docs/ @horas-siregar
+*.md @horas-siregar
+README.md @horas-siregar
+CONTRIBUTING.md @horas-siregar
+
+# GitHub Workflows
+/.github/ @ptsi-devops @horas-siregar
+
+# CI/CD Configuration
+/.github/workflows/ @ptsi-devops

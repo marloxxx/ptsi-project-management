@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
+use App\Models\User;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -21,7 +24,10 @@ class ViewUser extends ViewRecord
     {
         parent::mount($record);
 
+        /** @var User $user */
+        $user = $this->record;
+
         // Eager load relationships for better performance
-        $this->record->load(['roles', 'permissions']);
+        $user->load(['roles', 'permissions']);
     }
 }

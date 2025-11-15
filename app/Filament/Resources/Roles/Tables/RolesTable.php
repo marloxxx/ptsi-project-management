@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Roles\Tables;
 
 use App\Domain\Services\RoleServiceInterface;
+use App\Models\User;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -67,19 +68,19 @@ class RolesTable
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->authorize(fn (Role $record): bool => Auth::user()?->can('view', $record) ?? false),
+                    ->authorize(fn (Role $record): bool => self::currentUser()?->can('view', $record) ?? false),
                 EditAction::make()
-                    ->authorize(fn (Role $record): bool => Auth::user()?->can('update', $record) ?? false),
+                    ->authorize(fn (Role $record): bool => self::currentUser()?->can('update', $record) ?? false),
                 DeleteAction::make()
                     ->requiresConfirmation()
-                    ->authorize(fn (Role $record): bool => Auth::user()?->can('delete', $record) ?? false)
+                    ->authorize(fn (Role $record): bool => self::currentUser()?->can('delete', $record) ?? false)
                     ->action(fn (Role $record, RoleServiceInterface $roleService) => $roleService->delete((int) $record->getKey())),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
                         ->requiresConfirmation()
-                        ->authorize(fn (): bool => Auth::user()?->can('roles.delete') ?? false)
+                        ->authorize(fn (): bool => self::currentUser()?->can('roles.delete') ?? false)
                         ->action(
                             fn (Collection $records, RoleServiceInterface $roleService) => $records->each(
                                 fn (Role $role) => $roleService->delete((int) $role->getKey())
@@ -88,5 +89,15 @@ class RolesTable
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
+    }
+
+    /**
+     * Get the current user.
+     */
+    private static function currentUser(): ?User
+    {
+        $user = Auth::user();
+
+        return $user instanceof User ? $user : null;
     }
 }
