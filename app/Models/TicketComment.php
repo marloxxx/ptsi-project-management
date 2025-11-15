@@ -20,9 +20,17 @@ class TicketComment extends Model
         'body',
     ];
 
-    protected $casts = [
-        'is_internal' => 'bool',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_internal' => 'bool',
+        ];
+    }
 
     /**
      * @return BelongsTo<Ticket, TicketComment>

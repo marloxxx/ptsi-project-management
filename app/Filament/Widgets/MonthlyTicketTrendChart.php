@@ -12,13 +12,16 @@ class MonthlyTicketTrendChart extends ChartWidget
 {
     protected ?string $heading = 'Monthly Ticket Trend';
 
-    protected static ?int $sort = 3;
+    protected ?string $description = 'Ticket creation trend over time';
+
+    protected static ?int $sort = 5;
 
     protected ?string $maxHeight = '300px';
 
     protected ?string $pollingInterval = '60s';
 
     protected int|string|array $columnSpan = [
+        'default' => 1,
         'md' => 2,
         'xl' => 2,
     ];

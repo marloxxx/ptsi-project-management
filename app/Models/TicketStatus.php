@@ -22,9 +22,17 @@ class TicketStatus extends Model
         'sort_order',
     ];
 
-    protected $casts = [
-        'is_completed' => 'bool',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_completed' => 'bool',
+        ];
+    }
 
     /**
      * @return BelongsTo<Project, TicketStatus>

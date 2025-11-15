@@ -36,14 +36,16 @@ class UsersTable
                     ->sortable()
                     ->placeholder('Belum ditetapkan'),
                 TextColumn::make('email_verified_at')
-                    ->dateTime()
-                    ->sortable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Verified')
+                    ->date('M d, Y')
                     ->sortable()
+                    ->badge()
+                    ->color(fn (?string $state): string => $state ? 'success' : 'warning')
+                    ->formatStateUsing(fn (?string $state): string => $state ? 'Verified' : 'Not verified')
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
+                TextColumn::make('created_at')
+                    ->label('Joined')
+                    ->date('M d, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

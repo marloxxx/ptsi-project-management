@@ -8,6 +8,7 @@ use App\Domain\Services\ProjectServiceInterface;
 use App\Filament\Resources\Projects\ProjectResource;
 use App\Models\Project;
 use App\Models\User;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Support\Icons\Heroicon;
@@ -46,15 +47,22 @@ class ProjectsTable
                     ->formatStateUsing(fn (?string $state): ?string => $state),
 
                 TextColumn::make('start_date')
-                    ->label('Start')
-                    ->date()
+                    ->label('Duration')
+                    ->date('M d, Y')
                     ->sortable()
-                    ->placeholder('-'),
+                    ->description(function (Project $record): ?string {
+                        $startDate = $record->start_date;
+                        $endDate = $record->end_date;
 
-                TextColumn::make('end_date')
-                    ->label('End')
-                    ->date()
-                    ->sortable()
+                        if (! $startDate instanceof Carbon || ! $endDate instanceof Carbon) {
+                            return null;
+                        }
+
+                        $formattedEndDate = $endDate->format('M d, Y');
+                        $days = $startDate->diffInDays($endDate);
+
+                        return "End: {$formattedEndDate} ({$days} days)";
+                    })
                     ->placeholder('-'),
 
                 TextColumn::make('members_count')

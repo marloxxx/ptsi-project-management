@@ -12,6 +12,8 @@ class UserStatisticsChart extends ChartWidget
 {
     protected ?string $heading = 'User Assignment Statistics';
 
+    protected ?string $description = 'Projects and ticket assignments per user';
+
     protected static ?int $sort = 4;
 
     protected ?string $maxHeight = '300px';
@@ -19,6 +21,7 @@ class UserStatisticsChart extends ChartWidget
     protected ?string $pollingInterval = '60s';
 
     protected int|string|array $columnSpan = [
+        'default' => 1,
         'md' => 2,
         'xl' => 1,
     ];

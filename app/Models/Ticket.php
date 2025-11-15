@@ -30,11 +30,19 @@ class Ticket extends Model
         'due_date',
     ];
 
-    protected $casts = [
-        'start_date' => 'date',
-        'due_date' => 'date',
-        'created_by' => 'integer',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'date',
+            'due_date' => 'date',
+            'created_by' => 'integer',
+        ];
+    }
 
     protected static function booted(): void
     {

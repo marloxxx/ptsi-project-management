@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Tickets\Schemas;
 
 use App\Models\Ticket;
+use Carbon\Carbon;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -86,7 +87,14 @@ class TicketInfolist
                             ->label('Due Date')
                             ->date()
                             ->placeholder('-')
-                            ->color(fn (Ticket $record): ?string => $record->due_date && $record->due_date->isPast() ? 'danger' : null),
+                            ->color(function (Ticket $record): ?string {
+                                $dueDate = $record->due_date;
+                                if (! $dueDate instanceof Carbon) {
+                                    return null;
+                                }
+
+                                return $dueDate->isPast() ? 'danger' : null;
+                            }),
                     ])
                     ->columns(2),
 

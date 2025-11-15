@@ -13,6 +13,14 @@ class StatsOverview extends BaseWidget
 {
     protected ?string $pollingInterval = '30s';
 
+    protected static ?int $sort = 1;
+
+    /** @phpstan-ignore-next-line */
+    protected int|string|array $columnSpan = [
+        'default' => 1,
+        'md' => 'full',
+    ];
+
     protected AnalyticsServiceInterface $analyticsService;
 
     public function boot(AnalyticsServiceInterface $analyticsService): void

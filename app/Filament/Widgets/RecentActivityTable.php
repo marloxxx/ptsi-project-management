@@ -21,12 +21,15 @@ class RecentActivityTable extends BaseWidget
 {
     protected static ?string $heading = 'Recent Ticket Activity';
 
+    protected ?string $description = 'Latest ticket status updates and changes';
+
     protected int|string|array $columnSpan = [
+        'default' => 1,
         'md' => 2,
-        'xl' => 1,
+        'xl' => 2,
     ];
 
-    protected static ?int $sort = 5;
+    protected static ?int $sort = 6;
 
     protected ?string $pollingInterval = '60s';
 

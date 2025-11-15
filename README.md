@@ -33,6 +33,7 @@
 ### 📦 **Project Operations**
 - ✅ Ticket lifecycle lengkap (status, prioritas, histori, komentar)
 - ✅ Board & Timeline view memakai Filament Tab Layout Plugin
+- ✅ Epics overview page khusus untuk memantau inisiatif lintas proyek
 - ✅ Analytics dashboard (stats overview, trends, assignments)
 - ✅ External client portal (login token + dashboard publik)
 - ✅ Notifikasi email + database untuk komentar & anggota proyek

@@ -21,9 +21,17 @@ class ProjectNote extends Model
         'note_date',
     ];
 
-    protected $casts = [
-        'note_date' => 'date',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'note_date' => 'date',
+        ];
+    }
 
     /**
      * @return BelongsTo<Project, ProjectNote>

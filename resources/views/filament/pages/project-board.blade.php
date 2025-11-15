@@ -1,6 +1,6 @@
 <x-filament-panels::page>
-    <div class="space-y-6">
-        @if (!$selectedProject)
+    @if (!$selectedProject)
+        <div class="space-y-6">
             <x-filament::section>
                 <x-slot name="heading">
                     Pilih Proyek
@@ -77,17 +77,44 @@
                     </div>
                 @endif
             </x-filament::section>
-        @else
-            <x-filament::section>
-                <x-slot name="heading">
-                    {{ $selectedProject->name }}
-                </x-slot>
+        </div>
+    @else
+        <div class="flex h-[calc(100vh-10rem)] flex-col space-y-4">
+            <div class="flex-shrink-0">
+                <x-filament::section>
+                    <x-slot name="heading">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span>{{ $selectedProject->name }}</span>
+                                @if ($selectedProject->ticket_prefix)
+                                    <span
+                                        class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold text-white shadow-sm"
+                                        style="background-color: {{ $selectedProject->color ?? '#6B7280' }};">
+                                        {{ $selectedProject->ticket_prefix }}
+                                    </span>
+                                @endif
+                            </div>
+                            <button type="button" wire:click="$set('selectedProjectId', null)"
+                                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                                <x-heroicon-m-arrow-left class="h-4 w-4" />
+                                Kembali
+                            </button>
+                        </div>
+                    </x-slot>
+                    @if ($selectedProject->description)
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            {{ $selectedProject->description }}
+                        </p>
+                    @endif
+                </x-filament::section>
+            </div>
 
-                <div class="relative overflow-x-auto" x-data="projectBoard('{{ $this->getId() }}', {{ $this->canMoveTickets() ? 'true' : 'false' }})" x-init="init()"
-                    @ticket-updated.window="refresh()">
-                    <div class="inline-flex min-w-full gap-4 pb-6">
+            <div
+                class="flex-1 overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                <div class="relative h-full overflow-x-auto overflow-y-auto" x-data="projectBoard({{ $this->canMoveTickets() ? 'true' : 'false' }}, @js($this))" wire:ignore.self>
+                    <div class="inline-flex min-w-full gap-4 p-4">
                         @forelse ($ticketStatuses as $status)
-                            <div class="flex h-[680px] w-[320px] flex-none flex-col rounded-xl border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+                            <div class="flex h-[calc(100vh-18rem)] w-[320px] flex-none flex-col rounded-xl border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
                                 data-status-id="{{ $status->id }}" x-data="{ sortOrder: '{{ $sortOrders[$status->id] ?? 'date_created_newest' }}' }">
                                 <div class="flex items-center justify-between rounded-t-xl px-4 py-3 text-white"
                                     style="background-color: {{ $status->color ?? '#2563EB' }};">
@@ -130,10 +157,16 @@
                                 </div>
 
                                 <div class="status-column flex-1 space-y-3 overflow-y-auto px-3 py-3"
-                                    data-status-id="{{ $status->id }}">
+                                    style="scrollbar-width: thin; scrollbar-color: rgb(209 213 219) rgb(243 244 246);"
+                                    data-status-id="{{ $status->id }}"
+                                    x-on:dragover.prevent="handleDragOver($event, {{ $status->id }})"
+                                    x-on:dragleave="handleDragLeave($event, {{ $status->id }})"
+                                    x-on:drop.prevent="handleDrop($event, {{ $status->id }})">
                                     @forelse ($status->tickets as $ticket)
                                         <div class="ticket-card cursor-move rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition hover:shadow dark:border-gray-700 dark:bg-gray-800"
-                                            data-ticket-id="{{ $ticket->id }}">
+                                            data-ticket-id="{{ $ticket->id }}" draggable="true"
+                                            x-on:dragstart="handleDragStart($event, {{ $ticket->id }})"
+                                            x-on:dragend="handleDragEnd($event)">
                                             <div
                                                 class="mb-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                                                 <span class="font-mono">{{ $ticket->uuid }}</span>
@@ -212,68 +245,89 @@
                         @endforelse
                     </div>
                 </div>
-            </x-filament::section>
-        @endif
-    </div>
-
-    @if ($selectedProject)
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-            {{ $selectedProject->description ?? 'Board ticket untuk memantau progres pekerjaan tim.' }}
+            </div>
         </div>
     @endif
 
     @push('scripts')
         <script>
-            function projectBoard(componentId, canMove) {
+            function projectBoard(canMove, livewireComponent) {
                 return {
+                    draggedTicketId: null,
+                    draggedElement: null,
+                    $wire: livewireComponent,
+
                     init() {
-                        this.refresh();
+                        // No need for complex setup, Alpine handles it
                     },
-                    refresh() {
+
+                    handleDragStart(event, ticketId) {
                         if (!canMove) {
+                            event.preventDefault();
                             return;
                         }
 
-                        const livewireComponent = window.Livewire?.getById(componentId);
-                        if (!livewireComponent) {
+                        this.draggedTicketId = ticketId;
+                        this.draggedElement = event.target;
+
+                        if (event.dataTransfer) {
+                            event.dataTransfer.effectAllowed = 'move';
+                            event.dataTransfer.setData('text/plain', ticketId.toString());
+                        }
+
+                        event.target.classList.add('opacity-50');
+                    },
+
+                    handleDragEnd(event) {
+                        if (this.draggedElement) {
+                            this.draggedElement.classList.remove('opacity-50');
+                        }
+                        this.draggedTicketId = null;
+                        this.draggedElement = null;
+                    },
+
+                    handleDragOver(event, statusId) {
+                        if (!canMove || !this.draggedTicketId) {
                             return;
                         }
 
-                        document.querySelectorAll('.status-column').forEach((column) => {
-                            column.addEventListener('dragover', (event) => {
-                                event.preventDefault();
-                                column.classList.add('bg-primary-50', 'dark:bg-primary-950');
-                            });
+                        event.preventDefault();
+                        event.stopPropagation();
 
-                            column.addEventListener('dragleave', () => {
-                                column.classList.remove('bg-primary-50', 'dark:bg-primary-950');
-                            });
+                        const column = event.currentTarget;
+                        column.classList.add('bg-primary-50', 'dark:bg-primary-950');
+                    },
 
-                            column.addEventListener('drop', (event) => {
-                                event.preventDefault();
-                                column.classList.remove('bg-primary-50', 'dark:bg-primary-950');
+                    handleDragLeave(event, statusId) {
+                        const column = event.currentTarget;
+                        if (!column.contains(event.relatedTarget)) {
+                            column.classList.remove('bg-primary-50', 'dark:bg-primary-950');
+                        }
+                    },
 
-                                const ticketId = event.dataTransfer?.getData('ticket-id');
-                                const newStatusId = column.dataset.statusId;
+                    handleDrop(event, statusId) {
+                        if (!canMove || !this.draggedTicketId) {
+                            return;
+                        }
 
-                                if (ticketId && newStatusId) {
-                                    livewireComponent.call('moveTicket', Number(ticketId), Number(newStatusId));
-                                }
-                            });
-                        });
+                        event.preventDefault();
+                        event.stopPropagation();
 
-                        document.querySelectorAll('.ticket-card').forEach((card) => {
-                            card.setAttribute('draggable', 'true');
+                        const column = event.currentTarget;
+                        column.classList.remove('bg-primary-50', 'dark:bg-primary-950');
 
-                            card.addEventListener('dragstart', (event) => {
-                                event.dataTransfer?.setData('ticket-id', card.dataset.ticketId);
-                                card.classList.add('opacity-50');
-                            });
+                        const ticketId = this.draggedTicketId;
+                        const newStatusId = statusId;
 
-                            card.addEventListener('dragend', () => {
-                                card.classList.remove('opacity-50');
-                            });
-                        });
+                        if (ticketId && newStatusId && ticketId !== newStatusId) {
+                            // Use $wire which is passed from Livewire component
+                            if (this.$wire) {
+                                this.$wire.call('moveTicket', Number(ticketId), Number(newStatusId));
+                            }
+                        }
+
+                        this.draggedTicketId = null;
+                        this.draggedElement = null;
                     },
                 };
             }

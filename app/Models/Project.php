@@ -25,11 +25,19 @@ class Project extends Model
         'pinned_at',
     ];
 
-    protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'pinned_at' => 'datetime',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'pinned_at' => 'datetime',
+        ];
+    }
 
     /**
      * @return HasMany<TicketStatus>
