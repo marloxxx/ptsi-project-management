@@ -12,6 +12,8 @@ class UserStatisticsChart extends ChartWidget
 {
     protected ?string $heading = 'User Assignment Statistics';
 
+    protected ?string $description = 'Projects and ticket assignments per user';
+
     protected static ?int $sort = 4;
 
     protected ?string $maxHeight = '300px';

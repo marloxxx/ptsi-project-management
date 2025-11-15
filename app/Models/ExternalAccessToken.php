@@ -22,10 +22,18 @@ class ExternalAccessToken extends Model
         'last_accessed_at',
     ];
 
-    protected $casts = [
-        'is_active' => 'bool',
-        'last_accessed_at' => 'datetime',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'bool',
+            'last_accessed_at' => 'datetime',
+        ];
+    }
 
     /**
      * @return BelongsTo<Project, ExternalAccessToken>

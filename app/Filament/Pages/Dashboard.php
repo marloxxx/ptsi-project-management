@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\AccountWidget;
 use App\Filament\Widgets\MonthlyTicketTrendChart;
 use App\Filament\Widgets\RecentActivityTable;
 use App\Filament\Widgets\StatsOverview;
@@ -30,6 +31,7 @@ class Dashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
+            AccountWidget::class,
             StatsOverview::class,
             TicketsPerProjectChart::class,
             UserStatisticsChart::class,

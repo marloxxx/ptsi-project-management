@@ -12,7 +12,9 @@ class TicketsPerProjectChart extends ChartWidget
 {
     protected ?string $heading = 'Tickets per Project';
 
-    protected static ?int $sort = 2;
+    protected ?string $description = 'Distribution of tickets across all projects';
+
+    protected static ?int $sort = 3;
 
     protected ?string $maxHeight = '300px';
 

@@ -311,7 +311,7 @@ class ProjectBoard extends Page
     {
         return [
             Action::make('new_ticket')
-                ->label('New Ticket')
+                ->label('New Ticket',)
                 ->icon('heroicon-m-plus')
                 ->visible(fn (): bool => $this->selectedProject !== null && (self::currentUser()?->can('tickets.create') ?? false))
                 ->url(fn (): string => TicketResource::getUrl('create', [

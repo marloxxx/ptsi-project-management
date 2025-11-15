@@ -124,6 +124,11 @@ class DomainServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
+            \App\Domain\Services\EpicOverviewServiceInterface::class,
+            \App\Application\Services\EpicOverviewService::class
+        );
+
+        $this->app->bind(
             \App\Domain\Services\PermissionCatalogServiceInterface::class,
             \App\Application\Services\PermissionCatalogService::class
         );

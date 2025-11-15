@@ -30,4 +30,13 @@ interface EpicRepositoryInterface
      * @return Collection<int, Epic>
      */
     public function forProject(int $projectId): Collection;
+
+    /**
+     * Retrieve epics for multiple projects with optional filters.
+     *
+     * @param  array<int, int>  $projectIds
+     * @param  array<string, mixed>  $options
+     * @return Collection<int, Epic>
+     */
+    public function forProjects(array $projectIds, array $options = []): Collection;
 }

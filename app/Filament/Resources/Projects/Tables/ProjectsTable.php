@@ -46,15 +46,19 @@ class ProjectsTable
                     ->formatStateUsing(fn (?string $state): ?string => $state),
 
                 TextColumn::make('start_date')
-                    ->label('Start')
-                    ->date()
+                    ->label('Duration')
+                    ->date('M d, Y')
                     ->sortable()
-                    ->placeholder('-'),
+                    ->description(function (Project $record): ?string {
+                        if (! $record->start_date || ! $record->end_date) {
+                            return null;
+                        }
 
-                TextColumn::make('end_date')
-                    ->label('End')
-                    ->date()
-                    ->sortable()
+                        $endDate = $record->end_date->format('M d, Y');
+                        $days = $record->start_date->diffInDays($record->end_date);
+
+                        return "End: {$endDate} ({$days} days)";
+                    })
                     ->placeholder('-'),
 
                 TextColumn::make('members_count')

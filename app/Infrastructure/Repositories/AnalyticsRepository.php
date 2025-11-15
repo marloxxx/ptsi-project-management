@@ -11,83 +11,94 @@ use App\Models\TicketHistory;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class AnalyticsRepository implements AnalyticsRepositoryInterface
 {
     public function getOverviewCounts(User $user): array
     {
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $cacheKey = sprintf('analytics:overview:%d:%s', $user->getKey(), $user->hasRole('super_admin') ? 'admin' : 'member');
+        $cacheTtl = 300; // 5 minutes
 
-        if ($isSuperAdmin) {
+        return Cache::remember($cacheKey, $cacheTtl, function () use ($user): array {
+            $isSuperAdmin = $user->hasRole('super_admin');
+
+            if ($isSuperAdmin) {
+                return [
+                    'scope' => 'super_admin',
+                    'total_projects' => (int) Project::count(),
+                    'total_tickets' => (int) Ticket::count(),
+                    'team_members' => (int) User::count(),
+                    'my_assigned_tickets' => (int) $this->assignedTicketsQuery($user->getKey())->count(),
+                ];
+            }
+
+            $projectIds = $this->projectIdsForUser($user);
+
             return [
-                'scope' => 'super_admin',
-                'total_projects' => (int) Project::count(),
-                'total_tickets' => (int) Ticket::count(),
-                'team_members' => (int) User::count(),
+                'scope' => 'member',
+                'my_projects' => (int) count($projectIds),
+                'project_tickets' => (int) Ticket::query()
+                    ->whereIn('project_id', $projectIds)
+                    ->count(),
                 'my_assigned_tickets' => (int) $this->assignedTicketsQuery($user->getKey())->count(),
+                'my_created_tickets' => (int) Ticket::query()
+                    ->where('created_by', $user->getKey())
+                    ->count(),
+                'new_tickets_this_week' => (int) Ticket::query()
+                    ->whereIn('project_id', $projectIds)
+                    ->where('created_at', '>=', Carbon::now()->subDays(7))
+                    ->count(),
+                'my_overdue_tickets' => (int) $this->assignedTicketsQuery($user->getKey())
+                    ->whereNotNull('tickets.due_date')
+                    ->where('tickets.due_date', '<', Carbon::now())
+                    ->whereHas('status', function (Builder $query): void {
+                        $query->where('is_completed', false);
+                    })
+                    ->count(),
+                'my_completed_this_week' => (int) $this->assignedTicketsQuery($user->getKey())
+                    ->whereHas('status', function (Builder $query): void {
+                        $query->where('is_completed', true);
+                    })
+                    ->where('tickets.updated_at', '>=', Carbon::now()->subDays(7))
+                    ->count(),
+                'team_members' => (int) User::query()
+                    ->whereHas('projects', static function (Builder $query) use ($projectIds): void {
+                        $query->whereIn('projects.id', $projectIds);
+                    })
+                    ->whereKeyNot($user->getKey())
+                    ->distinct()
+                    ->count('users.id'),
             ];
-        }
-
-        $projectIds = $this->projectIdsForUser($user);
-
-        return [
-            'scope' => 'member',
-            'my_projects' => (int) count($projectIds),
-            'project_tickets' => (int) Ticket::query()
-                ->whereIn('project_id', $projectIds)
-                ->count(),
-            'my_assigned_tickets' => (int) $this->assignedTicketsQuery($user->getKey())->count(),
-            'my_created_tickets' => (int) Ticket::query()
-                ->where('created_by', $user->getKey())
-                ->count(),
-            'new_tickets_this_week' => (int) Ticket::query()
-                ->whereIn('project_id', $projectIds)
-                ->where('created_at', '>=', Carbon::now()->subDays(7))
-                ->count(),
-            'my_overdue_tickets' => (int) $this->assignedTicketsQuery($user->getKey())
-                ->whereNotNull('tickets.due_date')
-                ->where('tickets.due_date', '<', Carbon::now())
-                ->whereHas('status', function (Builder $query): void {
-                    $query->where('is_completed', false);
-                })
-                ->count(),
-            'my_completed_this_week' => (int) $this->assignedTicketsQuery($user->getKey())
-                ->whereHas('status', function (Builder $query): void {
-                    $query->where('is_completed', true);
-                })
-                ->where('tickets.updated_at', '>=', Carbon::now()->subDays(7))
-                ->count(),
-            'team_members' => (int) User::query()
-                ->whereHas('projects', static function (Builder $query) use ($projectIds): void {
-                    $query->whereIn('projects.id', $projectIds);
-                })
-                ->whereKeyNot($user->getKey())
-                ->distinct()
-                ->count('users.id'),
-        ];
+        });
     }
 
     public function getTicketsPerProject(User $user): array
     {
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $cacheKey = sprintf('analytics:tickets-per-project:%d:%s', $user->getKey(), $user->hasRole('super_admin') ? 'admin' : 'member');
+        $cacheTtl = 600; // 10 minutes
 
-        $projectsQuery = Project::query()
-            ->withCount('tickets')
-            ->orderBy('name');
+        return Cache::remember($cacheKey, $cacheTtl, function () use ($user): array {
+            $isSuperAdmin = $user->hasRole('super_admin');
 
-        if (! $isSuperAdmin) {
-            $projectsQuery->whereHas('members', function (Builder $query) use ($user): void {
-                $query->where('user_id', $user->getKey());
-            });
-        }
+            $projectsQuery = Project::query()
+                ->withCount('tickets')
+                ->orderBy('name');
 
-        $projects = $projectsQuery->get();
+            if (! $isSuperAdmin) {
+                $projectsQuery->whereHas('members', function (Builder $query) use ($user): void {
+                    $query->where('user_id', $user->getKey());
+                });
+            }
 
-        return [
-            'labels' => $projects->pluck('name')->all(),
-            'data' => $projects->pluck('tickets_count')->map(static fn (int $count): int => $count)->all(),
-        ];
+            $projects = $projectsQuery->get();
+
+            return [
+                'labels' => $projects->pluck('name')->all(),
+                'data' => $projects->pluck('tickets_count')->map(static fn (int $count): int => $count)->all(),
+            ];
+        });
     }
 
     public function getMonthlyTicketTrend(User $user): array
@@ -175,26 +186,31 @@ class AnalyticsRepository implements AnalyticsRepositoryInterface
 
     public function getUserStatistics(User $user): array
     {
-        $isSuperAdmin = $user->hasRole('super_admin');
+        $cacheKey = sprintf('analytics:user-statistics:%d:%s', $user->getKey(), $user->hasRole('super_admin') ? 'admin' : 'member');
+        $cacheTtl = 600; // 10 minutes
 
-        $usersQuery = User::query()
-            ->withCount([
-                'projects',
-                'assignedTickets',
-            ])
-            ->orderBy('name');
+        return Cache::remember($cacheKey, $cacheTtl, function () use ($user): array {
+            $isSuperAdmin = $user->hasRole('super_admin');
 
-        if (! $isSuperAdmin) {
-            $usersQuery->whereKey($user->getKey());
-        }
+            $usersQuery = User::query()
+                ->withCount([
+                    'projects',
+                    'assignedTickets',
+                ])
+                ->orderBy('name');
 
-        $users = $usersQuery->get();
+            if (! $isSuperAdmin) {
+                $usersQuery->whereKey($user->getKey());
+            }
 
-        return [
-            'labels' => $users->pluck('name')->all(),
-            'projects' => $users->pluck('projects_count')->map(static fn (int $count): int => $count)->all(),
-            'assignments' => $users->pluck('assigned_tickets_count')->map(static fn (int $count): int => $count)->all(),
-        ];
+            $users = $usersQuery->get();
+
+            return [
+                'labels' => $users->pluck('name')->all(),
+                'projects' => $users->pluck('projects_count')->map(static fn (int $count): int => $count)->all(),
+                'assignments' => $users->pluck('assigned_tickets_count')->map(static fn (int $count): int => $count)->all(),
+            ];
+        });
     }
 
     /**
@@ -227,15 +243,42 @@ class AnalyticsRepository implements AnalyticsRepositoryInterface
     }
 
     /**
+     * Clear analytics cache for a specific user.
+     */
+    public function clearCacheForUser(User $user): void
+    {
+        $isSuperAdmin = $user->hasRole('super_admin');
+        $roleSuffix = $isSuperAdmin ? 'admin' : 'member';
+
+        Cache::forget(sprintf('analytics:overview:%d:%s', $user->getKey(), $roleSuffix));
+        Cache::forget(sprintf('analytics:tickets-per-project:%d:%s', $user->getKey(), $roleSuffix));
+        Cache::forget(sprintf('analytics:user-statistics:%d:%s', $user->getKey(), $roleSuffix));
+        Cache::forget(sprintf('analytics:project-ids:%d', $user->getKey()));
+    }
+
+    /**
+     * Clear analytics cache for all users (use with caution).
+     */
+    public function clearAllAnalyticsCache(): void
+    {
+        Cache::flush();
+    }
+
+    /**
      * @return array<int, int>
      */
     private function projectIdsForUser(User $user): array
     {
-        return Project::query()
-            ->whereHas('members', function (Builder $query) use ($user): void {
-                $query->where('user_id', $user->getKey());
-            })
-            ->pluck('id')
-            ->all();
+        $cacheKey = sprintf('analytics:project-ids:%d', $user->getKey());
+        $cacheTtl = 300; // 5 minutes
+
+        return Cache::remember($cacheKey, $cacheTtl, function () use ($user): array {
+            return Project::query()
+                ->whereHas('members', function (Builder $query) use ($user): void {
+                    $query->where('user_id', $user->getKey());
+                })
+                ->pluck('id')
+                ->all();
+        });
     }
 }

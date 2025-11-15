@@ -48,7 +48,6 @@ class TicketsTable
 
                 TextColumn::make('status.name')
                     ->label('Status')
-                    ->sortable()
                     ->badge()
                     ->color(function (Ticket $record): string {
                         $status = $record->status;
@@ -56,11 +55,10 @@ class TicketsTable
 
                         return $color ?? 'gray';
                     })
-                    ->formatStateUsing(fn (?string $state): string => $state ?? '-'),
+                    ->placeholder('-'),
 
                 TextColumn::make('priority.name')
                     ->label('Priority')
-                    ->sortable()
                     ->badge()
                     ->color(function (Ticket $record): string {
                         $priority = $record->priority;
@@ -68,7 +66,7 @@ class TicketsTable
 
                         return $color ?? 'gray';
                     })
-                    ->formatStateUsing(fn (?string $state): string => $state ?? '-'),
+                    ->placeholder('-'),
 
                 TextColumn::make('epic.name')
                     ->label('Epic')
@@ -107,22 +105,29 @@ class TicketsTable
                     }),
 
                 TextColumn::make('start_date')
-                    ->label('Start')
-                    ->date()
+                    ->label('Timeline')
+                    ->date('M d, Y')
                     ->sortable()
-                    ->placeholder('-'),
+                    ->description(function (Ticket $record): ?string {
+                        if (! $record->due_date) {
+                            return null;
+                        }
 
-                TextColumn::make('due_date')
-                    ->label('Due')
-                    ->date()
-                    ->sortable()
-                    ->placeholder('-')
-                    ->color(fn (Ticket $record): ?string => $record->due_date && $record->due_date->isPast() ? 'danger' : null),
+                        $dueDate = $record->due_date->format('M d, Y');
+                        $isOverdue = $record->due_date->isPast();
+
+                        return $isOverdue
+                            ? "<span class='text-danger-600 dark:text-danger-400'>Due: {$dueDate}</span>"
+                            : "Due: {$dueDate}";
+                    })
+                    ->html()
+                    ->placeholder('-'),
 
                 TextColumn::make('created_at')
                     ->label('Created')
-                    ->dateTime('M d, Y')
-                    ->sortable(),
+                    ->date('M d, Y')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 // Filters can be added here

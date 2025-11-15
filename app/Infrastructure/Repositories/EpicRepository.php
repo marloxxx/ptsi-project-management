@@ -7,6 +7,7 @@ namespace App\Infrastructure\Repositories;
 use App\Domain\Repositories\EpicRepositoryInterface;
 use App\Models\Epic;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Arr;
 
 class EpicRepository implements EpicRepositoryInterface
 {
@@ -49,5 +50,40 @@ class EpicRepository implements EpicRepositoryInterface
         return Epic::where('project_id', $projectId)
             ->orderBy('sort_order')
             ->get();
+    }
+
+    /**
+     * @param  array<string, mixed>  $options
+     */
+    public function forProjects(array $projectIds, array $options = []): Collection
+    {
+        if ($projectIds === []) {
+            return collect();
+        }
+
+        /** @var array<int, string|int, mixed> $relations */
+        $relations = Arr::get($options, 'with', []);
+        $search = trim((string) Arr::get($options, 'search', ''));
+        $orderBy = Arr::get($options, 'order_by', 'start_date') ?: 'start_date';
+        $orderDirection = Arr::get($options, 'order_direction', 'asc') === 'desc' ? 'desc' : 'asc';
+
+        $query = Epic::query()
+            ->whereIn('project_id', $projectIds);
+
+        if ($relations !== []) {
+            $query->with($relations);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($innerQuery) use ($search): void {
+                $innerQuery->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('description', 'like', '%'.$search.'%');
+            });
+        }
+
+        $query->orderBy($orderBy, $orderDirection)
+            ->orderBy('name');
+
+        return $query->get();
     }
 }
