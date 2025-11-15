@@ -383,9 +383,9 @@ MIT © PT Surveyor Indonesia — Divisi Teknologi Informasi
 
 ## 🆘 Support
 
-- 📧 Email: ti@ptsi.co.id
+- 📧 Email: app.dev@ptsi.co.id
 - 📚 Documentation: [docs/INDEX.md](./docs/INDEX.md)
-- 🐛 Issues: [GitHub Issues](https://github.com/ptsi-digital/laravel-starter-kit-ptsi/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/marloxxx/ptsi-project-management/issues)
 
 ### Additional Features  
 - 📖 **API Documentation**: Auto-generated with Scramble at `/docs/api`
