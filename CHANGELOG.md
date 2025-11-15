@@ -1,129 +1,114 @@
 # Changelog
 
-All notable changes to Laravel Starter Kit PTSI will be documented in this file.
+All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2025-11-13
+## [Unreleased]
 
 ### Added
-- 📊 Analytics dashboard widgets (stats overview, ticket trends, user distribution, recent activity).
-- 🗂️ Project board & timeline (kanban + Gantt) dengan Solution Forest Tab Layout plugin.
-- 🌐 External client portal (token login, dashboard publik dengan filter & aktivitas).
-- ✉️ Queued notifications untuk komentar tiket & perubahan anggota proyek (email + in-app).
-- 📚 Dokumentasi Phase 8: README, Quick Start, Developer Workflow, Deployment (queue/Supervisor) diperbarui.
+- **Phase 0: Foundation**
+  - Laravel 12.x dengan struktur Clean Architecture
+  - Filament 4.x dengan PTSI branding (Dark Blue, Sky Blue, Tosca Green)
+  - Dark mode support dan custom Filament theme
+  - Module generator command (`kit:make-module`) untuk scaffolding clean architecture
+  - PHPStan static analysis integration
+  - Laravel Pint untuk code formatting
+  - GitHub Actions CI/CD pipeline dengan PHPStan, PHPUnit, dan Composer Security Audit
+  - Composer scripts untuk development workflow (`composer run dev`)
+
+- **Phase 1: Core Domain**
+  - Database scaffolding untuk projects, epics, tickets, priorities, statuses
+  - Models dan migrations untuk core domain entities
+  - External access tokens untuk client portal
+  - Database notifications structure
+
+- **Phase 2: User Access Management**
+  - User profile management dengan Filament Breezy
+  - Role-Based Access Control (RBAC) dengan Spatie Permission
+  - Filament Shield integration untuk role/permission management
+  - User impersonation tools
+  - Activity logging dengan Spatie Activity Log
+  - Type-safe `currentUser()` helper untuk authorization checks
+
+- **Phase 3: Project & Epic Management**
+  - Project CRUD dengan Filament Resources
+  - Epic management dengan relationship ke projects
+  - Project notes functionality
+  - Project member assignment
+  - Epic sidebar menu untuk navigasi cepat
+
+- **Phase 4: Ticket Lifecycle**
+  - Ticket CRUD dengan status dan priority management
+  - Ticket comments system
+  - Ticket history tracking
+  - Excel export/import untuk tickets (Maatwebsite Excel)
+  - Ticket lifecycle workflow
+
+- **Phase 5: Project Board & Timeline**
+  - Filament Project Board dengan Tab Layout Plugin
+  - Timeline view untuk project tracking
+  - Board view untuk kanban-style ticket management
+  - Enhanced project board dengan optimizations
+
+- **Phase 6: Analytics Dashboards**
+  - Analytics dashboard services
+  - Dashboard widgets untuk statistics overview
+  - Trends tracking
+  - Assignment analytics
+  - Responsive dashboard layout improvements
+
+- **Phase 7: Notifications & External Portal**
+  - Email notifications untuk ticket comments
+  - Database notifications untuk real-time updates
+  - External client portal dengan token-based authentication
+  - Project member assignment/removal notifications
+  - Queue worker operations guide
+  - Queue support untuk async notifications
+
+- **Phase 8: Documentation & Developer Experience**
+  - Comprehensive documentation refresh
+  - Operations guides untuk new modules
+  - Branch protection documentation dan automation
+  - Updated CI/CD configuration
+  - Developer workflow documentation
 
 ### Changed
-- ♻️ `composer run dev` kini menjalankan server, queue worker, Vite, dan log stream bersamaan.
-- 🧾 Deployment guide ditambah contoh konfigurasi Supervisor untuk queue & rename penomoran section.
-- 🗒️ Module implementation plan diperbarui untuk mencerminkan phase 5–8.
+- Refactored authorization checks untuk menggunakan type-safe `currentUser()` helper
+- Improved code quality dan readability across modules
+- Enhanced dashboard widget responsive layout
+- Optimized table performance dan queries
+- Updated project board dengan better UX
 
-### Testing
-- ✅ Pemeriksaan manual `php artisan test --filter=` untuk modul tiket, notifikasi, dan portal eksternal.
-- ⚠️ Catatan: Tes Livewire memerlukan asset Filament; jalankan `npm run build` sebelum test penuh.
+### Fixed
+- Resolved PHPStan static analysis errors
+- Fixed PHPStan errors untuk widget `columnSpan` property
+- Fixed CI failures untuk profile page tests
+- Fixed lint errors dan code formatting issues
+- Improved dashboard widget responsive layout
 
----
-
-## [1.0.0] - 2025-11-06
-
-### Added
-- 🎉 Initial release of Laravel Starter Kit PTSI Edition
-- ✅ Laravel 12 + Filament 4.2 (latest versions)
-- ✅ Clean Architecture (Domain/Application/Infrastructure layers)
-- ✅ Module Generator Command (`kit:make-module`)
-- ✅ Interface-First Pattern with DomainServiceProvider
-- ✅ DTO Pattern (Input/Output DTOs)
-- ✅ PTSI Brand Colors & Dark Mode
-- ✅ Comprehensive Documentation (README, ARCHITECTURE, SETUP, FEATURES, CONTRIBUTING)
-
-### Security & Authentication
-- ✅ Filament Shield 4.0 (RBAC)
-- ✅ Filament Breezy 3.0 (User Profile & MFA)
-- ✅ Two-Factor Authentication (2FA)
-- ✅ User Impersonation (Filament Impersonate 4.0)
-- ✅ Spatie Permission 6.23
-- ✅ Laravel Sanctum 4.2 (API Authentication)
-- ✅ Activity Logging (Spatie Activity Log 4.10)
-
-### Features
-- ✅ Media Library (Spatie Media Library 11.17)
-- ✅ Settings Management (Spatie Settings 3.5)
-- ✅ Excel Import/Export (Filament Excel 3.2)
-- ✅ Database Notifications
-- ✅ API Documentation (Scramble 0.13)
-- ✅ Blade FontAwesome Icons
-
-### Developer Tools
-- ✅ Laravel Boost 1.7 (AI Development Assistant)
-- ✅ Laravel Debugbar 3.16
-- ✅ Laravel Blueprint 2.12
-- ✅ Laravel Pint 1.24
-- ✅ Laravel Sail 1.47
-- ✅ PHPUnit 11.5
-
-### DevOps
-- ✅ GitHub Actions CI/CD Pipeline
-- ✅ Docker Support (Laravel Sail)
-- ✅ Composer Scripts (setup, dev, test)
-
-### Removed
-- ❌ Filament Socialite (Social Login) - Removed per requirements
-- ❌ Pest PHP - Skipped due to PHPUnit version conflict
-
-### Changed
-- ⬆️ All packages updated to latest compatible versions for Filament 4
-- 📝 Project renamed from `kaidokit-v4-ptsi` to `laravel-starter-kit-ptsi`
+### Documentation
+- Added queue worker operations guide
+- Refreshed README dan operations guides untuk new modules
+- Added branch protection documentation
+- Updated Laravel Boost guide
+- Enhanced developer workflow documentation
 
 ---
 
-## Upgrade Notes
+## [1.0.0] - 2025-11-15
 
-### From Kaido Kit v3 to PTSI Starter v1.0
+### Initial Release
+- Complete project management system dengan Clean Architecture
+- Full CRUD untuk Projects, Epics, Tickets
+- User access management dengan RBAC
+- Analytics dashboards
+- External client portal
+- Notification system
+- Excel import/export
+- Comprehensive documentation
 
-**Major Version Upgrades:**
-- Filament: `3.2` → `4.2`
-- Shield: `3.3` → `4.0`
-- Breezy: `2.4` → `3.0`
-- Impersonate: `3.15` → `4.0`
-- Excel: `2.3` → `3.0`
-
-**Breaking Changes:**
-- Filament v4 has breaking changes from v3. See [Filament Upgrade Guide](https://filamentphp.com/docs/4.x/upgrade-guide)
-- Clean architecture requires different folder structure
-- Service binding now done via DomainServiceProvider
-
-**Migration Path:**
-1. Follow Filament v4 upgrade guide
-2. Restructure code to clean architecture
-3. Update service bindings in DomainServiceProvider
-4. Regenerate permissions with `shield:generate`
-
----
-
-## Future Roadmap
-
-### v1.2.0 (Planned)
-- [ ] Multi-tenancy support (optional)
-- [ ] Localization (i18n) support
-- [ ] Email template system (customisable templates)
-- [ ] Performance monitoring integration (Horizon, OpenTelemetry)
-
-### v1.3.0 (Planned)
-- [ ] API Resource generation in module generator
-- [ ] GraphQL support (optional)
-- [ ] Real-time features (Laravel Reverb)
-- [ ] Advanced reporting module
-
-### v2.0.0 (Future)
-- [ ] Microservices architecture support
-- [ ] Event-driven architecture
-- [ ] CQRS pattern implementation
-- [ ] Advanced Clean Architecture patterns
-
----
-
-**Maintained by**: PTSI Digital Team  
-**License**: MIT  
-**Repository**: https://github.com/ptsi-digital/laravel-starter-kit-ptsi
+[Unreleased]: https://github.com/marloxxx/ptsi-project-management/compare/v1.0.0...dev
+[1.0.0]: https://github.com/marloxxx/ptsi-project-management/releases/tag/v1.0.0
 
