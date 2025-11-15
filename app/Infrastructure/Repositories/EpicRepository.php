@@ -76,8 +76,8 @@ class EpicRepository implements EpicRepositoryInterface
 
         if ($search !== '') {
             $query->where(function ($innerQuery) use ($search): void {
-                $innerQuery->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%');
+                $innerQuery->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('description', 'like', '%'.$search.'%');
             });
         }
 

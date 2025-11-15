@@ -52,7 +52,7 @@ class EpicOverviewService implements EpicOverviewServiceInterface
 
         $projectIds = $projects
             ->pluck('id')
-            ->map(static fn($id): int => (int) $id)
+            ->map(static fn ($id): int => (int) $id)
             ->all();
 
         if ($projectId !== null) {
