@@ -399,14 +399,12 @@ MIT © PT Surveyor Indonesia — Divisi Teknologi Informasi
   - 🏛️ [Architecture Guide](./ARCHITECTURE.md) - Clean architecture patterns
   - 🛠️ [Setup Guide](./SETUP.md) - Installation & configuration
   - 📋 [Features Checklist](./FEATURES.md) - Complete features list
-  - 🤝 [Contributing Guide](./CONTRIBUTING.md) - How to contribute
   - 📝 [Changelog](./CHANGELOG.md) - Version history
 
 ---
 
 ## 🙏 Credits
 
-- **Kaido Kit Original:** [siubie/kaido-kit](https://github.com/siubie/kaido-kit)
 - **Laravel:** Taylor Otwell & Laravel Team
 - **Filament:** Dan Harrin & Filament Team
 - **PTSI Digital Team**
