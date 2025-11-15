@@ -70,7 +70,7 @@ class ProjectInfolist
                             ->falseColor('gray')
                             ->formatStateUsing(fn ($state): bool => $state !== null)
                             ->helperText(fn (Project $record): string => $record->pinned_at !== null
-                                ? 'Pinned at '.$record->pinned_at->format('M d, Y \a\t H:i')
+                                ? 'Pinned at '.($record->pinned_at instanceof \Illuminate\Support\Carbon ? $record->pinned_at->format('M d, Y \a\t H:i') : '')
                                 : 'Not pinned'),
                     ])
                     ->columns(3),

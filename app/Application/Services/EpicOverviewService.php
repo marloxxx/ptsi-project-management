@@ -52,7 +52,7 @@ class EpicOverviewService implements EpicOverviewServiceInterface
 
         $projectIds = $projects
             ->pluck('id')
-            ->map(static fn ($id): int => (int) $id)
+            ->map(static fn($id): int => (int) $id)
             ->all();
 
         if ($projectId !== null) {
@@ -63,7 +63,7 @@ class EpicOverviewService implements EpicOverviewServiceInterface
             $projectIds = [$projectId];
         }
 
-        /** @var array<int, string|int, mixed> $relations */
+        /** @var list<string>|array<string, mixed> $relations */
         $relations = Arr::get($filters, 'with', [
             'project:id,name,ticket_prefix,color,start_date,end_date',
             'tickets' => static function ($query): void {

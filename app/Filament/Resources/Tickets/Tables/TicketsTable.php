@@ -22,7 +22,7 @@ class TicketsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query
+            ->modifyQueryUsing(fn(Builder $query): Builder => $query
                 ->with(['project', 'status', 'priority', 'epic', 'creator', 'assignees']))
             ->columns([
                 TextColumn::make('uuid')
@@ -98,7 +98,7 @@ class TicketsTable
 
                         if ($count > 2) {
                             $remaining = $count - 2;
-                            $names .= ' +'.$remaining;
+                            $names .= ' +' . $remaining;
                         }
 
                         return $names;
@@ -109,16 +109,17 @@ class TicketsTable
                     ->date('M d, Y')
                     ->sortable()
                     ->description(function (Ticket $record): ?string {
-                        if (! $record->due_date) {
+                        $dueDate = $record->due_date;
+                        if (! $dueDate instanceof \Illuminate\Support\Carbon) {
                             return null;
                         }
 
-                        $dueDate = $record->due_date->format('M d, Y');
-                        $isOverdue = $record->due_date->isPast();
+                        $formattedDate = $dueDate->format('M d, Y');
+                        $isOverdue = $dueDate->isPast();
 
                         return $isOverdue
-                            ? "<span class='text-danger-600 dark:text-danger-400'>Due: {$dueDate}</span>"
-                            : "Due: {$dueDate}";
+                            ? "<span class='text-danger-600 dark:text-danger-400'>Due: {$formattedDate}</span>"
+                            : "Due: {$formattedDate}";
                     })
                     ->html()
                     ->placeholder('-'),
@@ -136,19 +137,19 @@ class TicketsTable
                 Action::make('view')
                     ->label('View')
                     ->icon(Heroicon::OutlinedEye)
-                    ->visible(fn (): bool => self::currentUser()?->can('tickets.view') ?? false)
-                    ->url(fn (Ticket $record): string => TicketResource::getUrl('view', ['record' => $record])),
+                    ->visible(fn(): bool => self::currentUser()?->can('tickets.view') ?? false)
+                    ->url(fn(Ticket $record): string => TicketResource::getUrl('view', ['record' => $record])),
                 Action::make('edit')
                     ->label('Edit')
                     ->icon(Heroicon::OutlinedPencilSquare)
-                    ->visible(fn (): bool => self::currentUser()?->can('tickets.update') ?? false)
-                    ->url(fn (Ticket $record): string => TicketResource::getUrl('edit', ['record' => $record])),
+                    ->visible(fn(): bool => self::currentUser()?->can('tickets.update') ?? false)
+                    ->url(fn(Ticket $record): string => TicketResource::getUrl('edit', ['record' => $record])),
                 Action::make('delete')
                     ->label('Delete')
                     ->icon(Heroicon::OutlinedTrash)
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn (): bool => self::currentUser()?->can('tickets.delete') ?? false)
+                    ->visible(fn(): bool => self::currentUser()?->can('tickets.delete') ?? false)
                     ->action(function (Ticket $record, TicketServiceInterface $ticketService): void {
                         $ticketService->delete((int) $record->getKey());
                     }),
@@ -159,10 +160,10 @@ class TicketsTable
                     ->icon(Heroicon::OutlinedTrash)
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn (): bool => self::currentUser()?->can('tickets.delete') ?? false)
+                    ->visible(fn(): bool => self::currentUser()?->can('tickets.delete') ?? false)
                     ->action(function (Collection $records, TicketServiceInterface $ticketService): void {
                         $records->each(
-                            fn (Ticket $ticket): bool => $ticketService->delete((int) $ticket->getKey())
+                            fn(Ticket $ticket): bool => $ticketService->delete((int) $ticket->getKey())
                         );
                     }),
             ])

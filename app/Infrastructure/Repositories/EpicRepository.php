@@ -58,10 +58,10 @@ class EpicRepository implements EpicRepositoryInterface
     public function forProjects(array $projectIds, array $options = []): Collection
     {
         if ($projectIds === []) {
-            return collect();
+            return Epic::query()->whereRaw('1 = 0')->get();
         }
 
-        /** @var array<int, string|int, mixed> $relations */
+        /** @var list<string> $relations */
         $relations = Arr::get($options, 'with', []);
         $search = trim((string) Arr::get($options, 'search', ''));
         $orderBy = Arr::get($options, 'order_by', 'start_date') ?: 'start_date';
@@ -76,8 +76,8 @@ class EpicRepository implements EpicRepositoryInterface
 
         if ($search !== '') {
             $query->where(function ($innerQuery) use ($search): void {
-                $innerQuery->where('name', 'like', '%'.$search.'%')
-                    ->orWhere('description', 'like', '%'.$search.'%');
+                $innerQuery->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%');
             });
         }
 

@@ -301,7 +301,14 @@ class ProjectBoard extends Page
         return match ($sortOrder) {
             'date_created_oldest' => $tickets->sortBy('created_at'),
             'card_name_alphabetical' => $tickets->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE),
-            'due_date' => $tickets->sortBy(fn(Ticket $ticket) => $ticket->due_date?->format('Y-m-d') ?? '9999-12-31'),
+            'due_date' => $tickets->sortBy(function (Ticket $ticket): string {
+                $dueDate = $ticket->due_date;
+                if ($dueDate instanceof \Illuminate\Support\Carbon) {
+                    return $dueDate->format('Y-m-d');
+                }
+
+                return '9999-12-31';
+            }),
             'priority' => $tickets->sortBy(fn(Ticket $ticket) => $ticket->priority?->getKey() ?? PHP_INT_MAX),
             default => $tickets->sortByDesc('created_at'),
         };

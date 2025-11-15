@@ -8,6 +8,7 @@ use App\Domain\Services\ProjectServiceInterface;
 use App\Filament\Resources\Projects\ProjectResource;
 use App\Models\Project;
 use App\Models\User;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Support\Icons\Heroicon;
@@ -23,7 +24,7 @@ class ProjectsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query
+            ->modifyQueryUsing(fn(Builder $query): Builder => $query
                 ->withCount(['members', 'ticketStatuses'])
                 ->with('members'))
             ->columns([
@@ -37,27 +38,30 @@ class ProjectsTable
                     ->label('Prefix')
                     ->sortable()
                     ->searchable()
-                    ->tooltip(fn (Project $record): string => $record->ticket_prefix),
+                    ->tooltip(fn(Project $record): string => $record->ticket_prefix),
 
                 TextColumn::make('color')
                     ->label('Color')
                     ->badge()
                     ->color('info')
-                    ->formatStateUsing(fn (?string $state): ?string => $state),
+                    ->formatStateUsing(fn(?string $state): ?string => $state),
 
                 TextColumn::make('start_date')
                     ->label('Duration')
                     ->date('M d, Y')
                     ->sortable()
                     ->description(function (Project $record): ?string {
-                        if (! $record->start_date || ! $record->end_date) {
+                        $startDate = $record->start_date;
+                        $endDate = $record->end_date;
+
+                        if (! $startDate instanceof Carbon || ! $endDate instanceof Carbon) {
                             return null;
                         }
 
-                        $endDate = $record->end_date->format('M d, Y');
-                        $days = $record->start_date->diffInDays($record->end_date);
+                        $formattedEndDate = $endDate->format('M d, Y');
+                        $days = $startDate->diffInDays($endDate);
 
-                        return "End: {$endDate} ({$days} days)";
+                        return "End: {$formattedEndDate} ({$days} days)";
                     })
                     ->placeholder('-'),
 
@@ -93,19 +97,19 @@ class ProjectsTable
                 Action::make('view')
                     ->label('View')
                     ->icon(Heroicon::OutlinedEye)
-                    ->visible(fn (): bool => self::currentUser()?->can('projects.view') ?? false)
-                    ->url(fn (Project $record): string => ProjectResource::getUrl('view', ['record' => $record])),
+                    ->visible(fn(): bool => self::currentUser()?->can('projects.view') ?? false)
+                    ->url(fn(Project $record): string => ProjectResource::getUrl('view', ['record' => $record])),
                 Action::make('edit')
                     ->label('Edit')
                     ->icon(Heroicon::OutlinedPencilSquare)
-                    ->visible(fn (): bool => self::currentUser()?->can('projects.update') ?? false)
-                    ->url(fn (Project $record): string => ProjectResource::getUrl('edit', ['record' => $record])),
+                    ->visible(fn(): bool => self::currentUser()?->can('projects.update') ?? false)
+                    ->url(fn(Project $record): string => ProjectResource::getUrl('edit', ['record' => $record])),
                 Action::make('delete')
                     ->label('Delete')
                     ->icon(Heroicon::OutlinedTrash)
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn (): bool => self::currentUser()?->can('projects.delete') ?? false)
+                    ->visible(fn(): bool => self::currentUser()?->can('projects.delete') ?? false)
                     ->action(function (Project $record, ProjectServiceInterface $projectService): void {
                         $projectService->delete((int) $record->getKey());
                     }),
@@ -116,10 +120,10 @@ class ProjectsTable
                     ->icon(Heroicon::OutlinedTrash)
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn (): bool => self::currentUser()?->can('projects.delete') ?? false)
+                    ->visible(fn(): bool => self::currentUser()?->can('projects.delete') ?? false)
                     ->action(function (Collection $records, ProjectServiceInterface $projectService): void {
                         $records->each(
-                            fn (Project $project): bool => $projectService->delete((int) $project->getKey())
+                            fn(Project $project): bool => $projectService->delete((int) $project->getKey())
                         );
                     }),
             ])

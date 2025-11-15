@@ -17,9 +17,6 @@ parameters:
 
     scanDirectories:
         - app
-        - vendor/laravel/framework
-        - vendor/filament
-        - vendor/livewire
 
     universalObjectCratesClasses:
         - Livewire\Component
