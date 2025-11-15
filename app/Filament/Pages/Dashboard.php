@@ -39,4 +39,16 @@ class Dashboard extends BaseDashboard
             RecentActivityTable::class,
         ];
     }
+
+    /**
+     * @return int|array<string, int>
+     */
+    public function getColumns(): int|array
+    {
+        return [
+            'default' => 1,
+            'md' => 2,
+            'xl' => 3,
+        ];
+    }
 }

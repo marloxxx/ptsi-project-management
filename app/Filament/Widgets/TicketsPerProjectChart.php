@@ -21,6 +21,7 @@ class TicketsPerProjectChart extends ChartWidget
     protected ?string $pollingInterval = '60s';
 
     protected int|string|array $columnSpan = [
+        'default' => 1,
         'md' => 2,
         'xl' => 1,
     ];
@@ -60,7 +61,7 @@ class TicketsPerProjectChart extends ChartWidget
 
         $colors = collect($labels)
             ->keys()
-            ->map(fn (int $index): string => $palette[$index % count($palette)])
+            ->map(fn(int $index): string => $palette[$index % count($palette)])
             ->all();
 
         return [

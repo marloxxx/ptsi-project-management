@@ -21,6 +21,7 @@ class UserStatisticsChart extends ChartWidget
     protected ?string $pollingInterval = '60s';
 
     protected int|string|array $columnSpan = [
+        'default' => 1,
         'md' => 2,
         'xl' => 1,
     ];
