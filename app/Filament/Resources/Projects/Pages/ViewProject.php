@@ -34,7 +34,7 @@ class ViewProject extends ViewRecord
                     ->label('Generate External Access')
                     ->icon('heroicon-o-key')
                     ->requiresConfirmation()
-                    ->visible(fn(): bool => static::getResource()::canEdit($this->record))
+                    ->visible(fn (): bool => static::getResource()::canEdit($this->record))
                     ->action(function (Model $record): void {
                         /** @var Project $record */
                         $token = $this->projectService->generateExternalAccess((int) $record->getKey(), 'External Access');
@@ -132,9 +132,9 @@ class ViewProject extends ViewRecord
             ])->button()->label('External Access'),
             ActionGroup::make([
                 EditAction::make()
-                    ->visible(fn(): bool => static::getResource()::canEdit($this->record)),
+                    ->visible(fn (): bool => static::getResource()::canEdit($this->record)),
                 DeleteAction::make()
-                    ->visible(fn(): bool => static::getResource()::canDelete($this->record))
+                    ->visible(fn (): bool => static::getResource()::canDelete($this->record))
                     ->requiresConfirmation()
                     ->action(function (Model $record): void {
                         /** @var Project $record */
