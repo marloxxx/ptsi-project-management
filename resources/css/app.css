@@ -94,6 +94,32 @@ a.fi-btn.fi-btn-primary,
     border-color: #ff6f0a !important;
 }
 
+/* Ensure icons appear white when contained in white-text elements (solid bg contexts) */
+.text-white svg,
+.text-white [class*="heroicon"],
+.text-white i {
+    color: white !important;
+    fill: white !important;
+    stroke: white !important;
+}
+
+.dark .text-white svg,
+.dark .text-white [class*="heroicon"],
+.dark .text-white i {
+    color: white !important;
+    fill: white !important;
+    stroke: white !important;
+}
+
+/* Buttons with solid backgrounds should render icons as white */
+.fi-btn svg,
+.fi-btn [class*="heroicon"],
+.fi-btn i {
+    color: white !important;
+    fill: white !important;
+    stroke: white !important;
+}
+
 /* Danger buttons */
 .fi-btn-danger,
 .fi-btn-danger:hover,
