@@ -1,5 +1,5 @@
 {
-    "title": "PTSI Admin - Laravel Starter Kit",
+    "title": "PTSI Project Management",
     "description": "Laravel 12 + Filament 4 Starter Kit with Clean Architecture for PT Surveyor Indonesia. Reference docs/LARAVEL_BOOST_GUIDE.md for complete guidelines.",
     "agents": {
         "boost": true,

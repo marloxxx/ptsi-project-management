@@ -12,8 +12,7 @@
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600;plus-jakarta-sans:400,500,600&display=swap"
         rel="stylesheet" />
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
-        integrity="sha384-q3G6zBFCYLHGNO6iV9RbQwTecKkRxp1inWAPaAgVJ9wHFmp32SExGvtapXHQWZ0O" crossorigin="anonymous" />
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @livewireStyles
 
@@ -22,62 +21,36 @@
             color-scheme: light;
         }
 
-        body {
-            font-family: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background-color: #f8fafc;
-            color: #0f172a;
-            min-height: 100vh;
-        }
-
-        .app-shell {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .app-header,
-        .app-footer {
-            background-color: #ffffff;
-            border-color: #e2e8f0;
-        }
-
-        .card {
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 40px -20px rgba(15, 23, 42, 0.25);
-        }
-
-        @media (min-width: 1024px) {
-            .content-container {
-                max-width: 1100px;
-            }
-        }
+        /* Tailwind handles most styles; keep minimal customizations if needed */
     </style>
 </head>
 
-<body>
-    <div class="app-shell">
-        <header class="app-header border-bottom">
-            <div class="container-fluid py-3 content-container">
-                <nav aria-label="{{ __('External portal navigation') }}"
-                    class="d-flex justify-content-between align-items-center">
-                    <strong>{{ config('app.name') }}</strong>
-                    <small class="text-secondary">
+<body class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900">
+    <div class="flex min-h-screen flex-col">
+        <header class="border-b border-slate-200 bg-white/80 backdrop-blur">
+            <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+                <nav aria-label="{{ __('External portal navigation') }}" class="flex h-16 items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <img src="{{ asset('images/si-logo-horizontal.png') }}" alt="PTSI" class="h-8 w-auto">
+                        <span
+                            class="hidden sm:inline-block text-sm font-medium text-slate-500">{{ config('app.name') }}</span>
+                    </div>
+                    <div class="text-xs font-medium text-slate-500">
                         {{ now()->format('d M Y, H:i') }}
-                    </small>
+                    </div>
                 </nav>
             </div>
         </header>
 
-        <main class="flex-grow-1 py-5">
-            <div class="container content-container">
+        <main class="flex-1 py-10">
+            <div class="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
                 {{ $slot }}
             </div>
         </main>
 
-        <footer class="app-footer border-top py-3">
-            <div class="container content-container text-center text-secondary">
-                <small>&copy; {{ now()->format('Y') }} {{ config('app.name') }}.
-                    {{ __('All rights reserved.') }}</small>
+        <footer class="border-t border-slate-200 bg-white/80 py-4 text-center text-sm text-slate-500 backdrop-blur">
+            <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+                &copy; {{ now()->format('Y') }} {{ config('app.name') }}. {{ __('All rights reserved.') }}
             </div>
         </footer>
     </div>
