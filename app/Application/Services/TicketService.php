@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
+use App\Domain\Repositories\ProjectWorkflowRepositoryInterface;
 use App\Domain\Repositories\TicketCommentRepositoryInterface;
 use App\Domain\Repositories\TicketHistoryRepositoryInterface;
 use App\Domain\Repositories\TicketRepositoryInterface;
 use App\Domain\Repositories\TicketStatusRepositoryInterface;
 use App\Domain\Services\TicketServiceInterface;
+use App\Models\Project;
 use App\Models\Ticket;
 use App\Models\TicketComment;
 use App\Models\User;
@@ -26,7 +28,8 @@ class TicketService implements TicketServiceInterface
         protected TicketRepositoryInterface $ticketRepository,
         protected TicketStatusRepositoryInterface $ticketStatusRepository,
         protected TicketHistoryRepositoryInterface $ticketHistoryRepository,
-        protected TicketCommentRepositoryInterface $ticketCommentRepository
+        protected TicketCommentRepositoryInterface $ticketCommentRepository,
+        protected ProjectWorkflowRepositoryInterface $projectWorkflowRepository
     ) {}
 
     /**
@@ -36,6 +39,11 @@ class TicketService implements TicketServiceInterface
     public function create(array $data, array $assigneeIds = []): Ticket
     {
         return DB::transaction(function () use ($data, $assigneeIds) {
+            // Validate initial status against workflow if workflow exists
+            if (isset($data['ticket_status_id']) && isset($data['project_id'])) {
+                $this->validateTransition(null, (int) $data['ticket_status_id'], (int) $data['project_id']);
+            }
+
             /** @var Ticket $ticket */
             $ticket = $this->ticketRepository->create($data);
 
@@ -62,8 +70,18 @@ class TicketService implements TicketServiceInterface
     {
         return DB::transaction(function () use ($ticketId, $data, $assigneeIds) {
             $ticket = $this->findTicketOrFail($ticketId);
+            $ticket->loadMissing(['project']);
 
             $originalStatusId = $ticket->ticket_status_id;
+
+            // Validate transition if status is being changed
+            if (array_key_exists('ticket_status_id', $data) && (int) $data['ticket_status_id'] !== (int) $originalStatusId) {
+                $this->validateTransition(
+                    (int) $originalStatusId,
+                    (int) $data['ticket_status_id'],
+                    (int) $ticket->project_id
+                );
+            }
 
             $ticket = $this->ticketRepository->update($ticket, $data);
 
@@ -95,6 +113,7 @@ class TicketService implements TicketServiceInterface
     {
         return DB::transaction(function () use ($ticketId, $statusId, $note) {
             $ticket = $this->findTicketOrFail($ticketId);
+            $ticket->loadMissing(['project']);
 
             $previousStatusId = (int) $ticket->ticket_status_id;
 
@@ -107,6 +126,9 @@ class TicketService implements TicketServiceInterface
             if (! $status) {
                 throw new RuntimeException('Target status not found.');
             }
+
+            // Validate transition against workflow
+            $this->validateTransition($previousStatusId, $statusId, (int) $ticket->project_id);
 
             $ticket = $this->ticketRepository->update($ticket, [
                 'ticket_status_id' => $statusId,
@@ -199,6 +221,38 @@ class TicketService implements TicketServiceInterface
         }
 
         return $ticket;
+    }
+
+    /**
+     * Validate if a status transition is allowed according to the project workflow.
+     *
+     * @throws RuntimeException
+     */
+    protected function validateTransition(?int $fromStatusId, int $toStatusId, int $projectId): void
+    {
+        $workflow = $this->projectWorkflowRepository->forProject(
+            Project::findOrFail($projectId)
+        );
+
+        // If no workflow defined, allow all transitions (backward compatible)
+        if (! $workflow) {
+            return;
+        }
+
+        if (! $workflow->isTransitionAllowed($fromStatusId, $toStatusId)) {
+            $fromStatus = $fromStatusId ? $this->ticketStatusRepository->find($fromStatusId) : null;
+            $fromStatusName = ($fromStatus !== null ? $fromStatus->name : null) ?? ($fromStatusId ? 'Unknown' : 'Initial');
+            $toStatus = $this->ticketStatusRepository->find($toStatusId);
+            $toStatusName = ($toStatus !== null ? $toStatus->name : null) ?? 'Unknown';
+
+            throw new RuntimeException(
+                sprintf(
+                    'Transition from "%s" to "%s" is not allowed by the project workflow.',
+                    $fromStatusName,
+                    $toStatusName
+                )
+            );
+        }
     }
 
     protected function recordStatusChange(Ticket $ticket, ?int $fromStatusId, int $toStatusId, ?string $note = null): void
