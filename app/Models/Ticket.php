@@ -22,6 +22,7 @@ class Ticket extends Model
         'ticket_status_id',
         'priority_id',
         'epic_id',
+        'sprint_id',
         'created_by',
         'uuid',
         'name',
@@ -156,6 +157,17 @@ class Ticket extends Model
     {
         /** @var HasMany<TicketHistory, Ticket> $relation */
         $relation = $this->hasMany(TicketHistory::class);
+
+        return $relation;
+    }
+
+    /**
+     * @return BelongsTo<Sprint, Ticket>
+     */
+    public function sprint(): BelongsTo
+    {
+        /** @var BelongsTo<Sprint, Ticket> $relation */
+        $relation = $this->belongsTo(Sprint::class);
 
         return $relation;
     }

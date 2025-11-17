@@ -20,6 +20,7 @@ interface TicketStatusRepositoryInterface
      *
      * @param  array<string, mixed>  $options
      *                                         - assignee_ids: array<int, int>
+     *                                         - sprint_id: int|null
      *                                         - ticket_relations: array<int, string>
      * @return Collection<int, TicketStatus>
      */

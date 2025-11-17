@@ -75,8 +75,12 @@ class TicketBoardService implements TicketBoardServiceInterface
             static fn (int $id): bool => $id > 0
         ));
 
+        /** @var int|null $sprintId */
+        $sprintId = Arr::get($filters, 'sprint_id');
+
         $statuses = $this->ticketStatusRepository->boardColumns($project, [
             'assignee_ids' => $assigneeIds,
+            'sprint_id' => $sprintId,
         ]);
 
         $members = $project->members->sortBy('name')->values();

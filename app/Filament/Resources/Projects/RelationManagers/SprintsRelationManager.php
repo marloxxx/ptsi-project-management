@@ -89,7 +89,7 @@ class SprintsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->heading('Sprints')
-            ->modifyQueryUsing(fn(Builder $query): Builder => $query->orderBy('start_date', 'desc'))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->orderBy('start_date', 'desc'))
             ->columns([
                 TextColumn::make('name')
                     ->label('Sprint')
@@ -99,7 +99,7 @@ class SprintsRelationManager extends RelationManager
                 TextColumn::make('state')
                     ->label('State')
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'Active' => 'success',
                         'Closed' => 'gray',
                         'Planned' => 'info',
@@ -126,8 +126,8 @@ class SprintsRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->authorize(fn(): bool => $this->canCreate())
-                    ->visible(fn(): bool => $this->canCreate())
+                    ->authorize(fn (): bool => $this->canCreate())
+                    ->visible(fn (): bool => $this->canCreate())
                     ->mutateDataUsing(function (array $data): array {
                         // Ensure created_by is set if not provided
                         if (! array_key_exists('created_by', $data) || $data['created_by'] === null) {
@@ -148,17 +148,17 @@ class SprintsRelationManager extends RelationManager
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->authorize(fn(Sprint $record): bool => $this->canViewRecord($record))
-                    ->visible(fn(Sprint $record): bool => $this->canViewRecord($record)),
+                    ->authorize(fn (Sprint $record): bool => $this->canViewRecord($record))
+                    ->visible(fn (Sprint $record): bool => $this->canViewRecord($record)),
                 EditAction::make()
-                    ->authorize(fn(Sprint $record): bool => $this->canEditRecord($record))
-                    ->visible(fn(Sprint $record): bool => $this->canEditRecord($record)),
+                    ->authorize(fn (Sprint $record): bool => $this->canEditRecord($record))
+                    ->visible(fn (Sprint $record): bool => $this->canEditRecord($record)),
                 Action::make('activate')
                     ->label('Activate')
                     ->icon('heroicon-o-play')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn(Sprint $record): bool => $this->canActivate($record) && $record->isPlanned())
+                    ->visible(fn (Sprint $record): bool => $this->canActivate($record) && $record->isPlanned())
                     ->action(function (Sprint $record): void {
                         $this->sprintService->activate($record);
                         Notification::make()
@@ -171,8 +171,8 @@ class SprintsRelationManager extends RelationManager
                     ->icon('heroicon-o-check-circle')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->authorize(fn(Sprint $record): bool => $this->canClose($record))
-                    ->visible(fn(Sprint $record): bool => $this->canClose($record) && $record->isActive())
+                    ->authorize(fn (Sprint $record): bool => $this->canClose($record))
+                    ->visible(fn (Sprint $record): bool => $this->canClose($record) && $record->isActive())
                     ->action(function (Sprint $record): void {
                         $this->sprintService->close($record);
                         Notification::make()
@@ -185,7 +185,7 @@ class SprintsRelationManager extends RelationManager
                     ->icon('heroicon-o-arrow-path')
                     ->color('info')
                     ->requiresConfirmation()
-                    ->visible(fn(Sprint $record): bool => $this->canReopen($record) && $record->isClosed())
+                    ->visible(fn (Sprint $record): bool => $this->canReopen($record) && $record->isClosed())
                     ->action(function (Sprint $record): void {
                         $this->sprintService->reopen($record);
                         Notification::make()
@@ -194,8 +194,8 @@ class SprintsRelationManager extends RelationManager
                             ->send();
                     }),
                 DeleteAction::make()
-                    ->authorize(fn(Sprint $record): bool => $this->canDeleteRecord($record))
-                    ->visible(fn(Sprint $record): bool => $this->canDeleteRecord($record))
+                    ->authorize(fn (Sprint $record): bool => $this->canDeleteRecord($record))
+                    ->visible(fn (Sprint $record): bool => $this->canDeleteRecord($record))
                     ->requiresConfirmation(),
             ])
             ->emptyStateHeading('No sprints yet')
