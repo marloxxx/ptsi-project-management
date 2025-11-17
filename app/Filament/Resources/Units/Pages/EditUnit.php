@@ -42,7 +42,7 @@ class EditUnit extends EditRecord
     {
         return [
             DeleteAction::make()
-                ->visible(fn(): bool => static::getResource()::canDelete($this->record))
+                ->visible(fn (): bool => static::getResource()::canDelete($this->record))
                 ->requiresConfirmation(),
         ];
     }
