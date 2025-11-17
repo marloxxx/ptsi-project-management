@@ -24,6 +24,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use InvalidArgumentException;
 
 class ProjectNotesRelationManager extends RelationManager
 {
@@ -98,15 +99,36 @@ class ProjectNotesRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->visible(fn (): bool => self::currentUser()?->can('project-notes.create') ?? false),
+                    ->authorize(fn (): bool => $this->canCreate())
+                    ->visible(fn (): bool => $this->canCreate())
+                    ->mutateDataUsing(function (array $data): array {
+                        // Ensure created_by is set if not provided
+                        if (! array_key_exists('created_by', $data) || $data['created_by'] === null) {
+                            $user = $this->currentUser();
+                            if ($user) {
+                                $data['created_by'] = $user->getKey();
+                            } else {
+                                // Fallback to Auth::id() if currentUser() returns null
+                                $userId = Auth::id();
+                                if ($userId) {
+                                    $data['created_by'] = $userId;
+                                }
+                            }
+                        }
+
+                        return $data;
+                    }),
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->visible(fn (): bool => self::currentUser()?->can('project-notes.view') ?? false),
+                    ->authorize(fn (ProjectNote $record): bool => $this->canViewRecord($record))
+                    ->visible(fn (ProjectNote $record): bool => $this->canViewRecord($record)),
                 EditAction::make()
-                    ->visible(fn (): bool => self::currentUser()?->can('project-notes.update') ?? false),
+                    ->authorize(fn (ProjectNote $record): bool => $this->canEditRecord($record))
+                    ->visible(fn (ProjectNote $record): bool => $this->canEditRecord($record)),
                 DeleteAction::make()
-                    ->visible(fn (): bool => self::currentUser()?->can('project-notes.delete') ?? false)
+                    ->authorize(fn (ProjectNote $record): bool => $this->canDeleteRecord($record))
+                    ->visible(fn (ProjectNote $record): bool => $this->canDeleteRecord($record))
                     ->requiresConfirmation(),
             ])
             ->emptyStateHeading('No notes yet')
@@ -118,8 +140,26 @@ class ProjectNotesRelationManager extends RelationManager
      */
     protected function handleRecordCreation(array $data): Model
     {
-        /** @var Project $project */
         $project = $this->getOwnerRecord();
+
+        if (! $project instanceof Project) {
+            throw new InvalidArgumentException('Unable to resolve project context.');
+        }
+
+        // created_by should already be set by mutateDataUsing() on CreateAction
+        // This is just a fallback in case it's still not set
+        if (! array_key_exists('created_by', $data) || $data['created_by'] === null) {
+            $user = $this->currentUser();
+            if ($user) {
+                $data['created_by'] = $user->getKey();
+            } else {
+                // Fallback to Auth::id() if currentUser() returns null
+                $userId = Auth::id();
+                if ($userId) {
+                    $data['created_by'] = $userId;
+                }
+            }
+        }
 
         return $this->projectService->addNote((int) $project->getKey(), $data);
     }
@@ -129,23 +169,128 @@ class ProjectNotesRelationManager extends RelationManager
      */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        /** @var ProjectNote $record */
+        if (! $record instanceof ProjectNote) {
+            throw new InvalidArgumentException('Expected ProjectNote model.');
+        }
+
         return $this->projectService->updateNote((int) $record->getKey(), $data);
     }
 
     protected function handleRecordDeletion(Model $record): void
     {
-        /** @var ProjectNote $record */
+        if (! $record instanceof ProjectNote) {
+            throw new InvalidArgumentException('Expected ProjectNote model.');
+        }
+
         $this->projectService->deleteNote((int) $record->getKey());
     }
 
-    /**
-     * Get the current user.
-     */
     private function currentUser(): ?User
     {
         $user = Auth::user();
 
         return $user instanceof User ? $user : null;
+    }
+
+    protected function canCreate(): bool
+    {
+        $user = $this->currentUser();
+        $project = $this->getOwnerRecord();
+
+        if (! $user || ! $project instanceof Project) {
+            return false;
+        }
+
+        // Load members if not loaded
+        if (! $project->relationLoaded('members')) {
+            $project->load('members');
+        }
+
+        // Check if user is project member
+        if (! $project->members->contains('id', $user->getKey())) {
+            return false;
+        }
+
+        // Admin yang adalah project member selalu boleh
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            return true;
+        }
+
+        // Check permission - use permission string directly for RelationManager context
+        return $user->hasPermissionTo('project-notes.create');
+    }
+
+    protected function canViewRecord(Model $record): bool
+    {
+        if (! $record instanceof ProjectNote) {
+            return false;
+        }
+
+        $user = $this->currentUser();
+
+        if (! $user) {
+            return false;
+        }
+
+        // Load project and members if not loaded
+        if (! $record->relationLoaded('project')) {
+            $record->load('project.members');
+        }
+
+        return $user->can('view', $record);
+    }
+
+    protected function canEditRecord(Model $record): bool
+    {
+        if (! $record instanceof ProjectNote) {
+            return false;
+        }
+
+        $user = $this->currentUser();
+
+        if (! $user) {
+            return false;
+        }
+
+        // Load project and members if not loaded
+        if (! $record->relationLoaded('project')) {
+            $record->load('project.members');
+        }
+
+        // Admin yang adalah project member selalu boleh
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            if ($record->project->members->contains('id', $user->getKey())) {
+                return true;
+            }
+        }
+
+        return $user->can('update', $record);
+    }
+
+    protected function canDeleteRecord(Model $record): bool
+    {
+        if (! $record instanceof ProjectNote) {
+            return false;
+        }
+
+        $user = $this->currentUser();
+
+        if (! $user) {
+            return false;
+        }
+
+        // Load project and members if not loaded
+        if (! $record->relationLoaded('project')) {
+            $record->load('project.members');
+        }
+
+        // Admin yang adalah project member selalu boleh
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            if ($record->project->members->contains('id', $user->getKey())) {
+                return true;
+            }
+        }
+
+        return $user->can('delete', $record);
     }
 }
