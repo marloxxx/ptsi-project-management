@@ -9,6 +9,7 @@ use App\Domain\Repositories\TicketCommentRepositoryInterface;
 use App\Domain\Repositories\TicketHistoryRepositoryInterface;
 use App\Domain\Repositories\TicketRepositoryInterface;
 use App\Domain\Repositories\TicketStatusRepositoryInterface;
+use App\Domain\Services\CustomFieldServiceInterface;
 use App\Domain\Services\TicketServiceInterface;
 use App\Models\Project;
 use App\Models\Ticket;
@@ -29,7 +30,8 @@ class TicketService implements TicketServiceInterface
         protected TicketStatusRepositoryInterface $ticketStatusRepository,
         protected TicketHistoryRepositoryInterface $ticketHistoryRepository,
         protected TicketCommentRepositoryInterface $ticketCommentRepository,
-        protected ProjectWorkflowRepositoryInterface $projectWorkflowRepository
+        protected ProjectWorkflowRepositoryInterface $projectWorkflowRepository,
+        protected CustomFieldServiceInterface $customFieldService
     ) {}
 
     /**
@@ -39,6 +41,10 @@ class TicketService implements TicketServiceInterface
     public function create(array $data, array $assigneeIds = []): Ticket
     {
         return DB::transaction(function () use ($data, $assigneeIds) {
+            // Extract custom fields data
+            $customFieldsData = $data['custom_fields'] ?? [];
+            unset($data['custom_fields']);
+
             // Validate initial status against workflow if workflow exists
             if (isset($data['ticket_status_id']) && isset($data['project_id'])) {
                 $this->validateTransition(null, (int) $data['ticket_status_id'], (int) $data['project_id']);
@@ -56,6 +62,11 @@ class TicketService implements TicketServiceInterface
                 $this->ticketRepository->syncAssignees($ticket, $assigneeIds);
             }
 
+            // Sync custom field values
+            if (! empty($customFieldsData)) {
+                $this->syncCustomFields($ticket, $customFieldsData);
+            }
+
             $this->recordStatusChange(
                 $ticket,
                 null,
@@ -63,7 +74,7 @@ class TicketService implements TicketServiceInterface
                 'Ticket created'
             );
 
-            return $ticket->fresh(['assignees', 'status', 'project', 'parent', 'children']);
+            return $ticket->fresh(['assignees', 'status', 'project', 'parent', 'children', 'customValues']);
         });
     }
 
@@ -76,6 +87,11 @@ class TicketService implements TicketServiceInterface
         return DB::transaction(function () use ($ticketId, $data, $assigneeIds) {
             $ticket = $this->findTicketOrFail($ticketId);
             $ticket->loadMissing(['project']);
+
+            // Extract custom fields data before unsetting
+            $hasCustomFields = array_key_exists('custom_fields', $data);
+            $customFieldsData = $data['custom_fields'] ?? [];
+            unset($data['custom_fields']);
 
             $originalStatusId = $ticket->ticket_status_id;
 
@@ -104,6 +120,11 @@ class TicketService implements TicketServiceInterface
                 $this->ticketRepository->syncAssignees($ticket, $assigneeIds);
             }
 
+            // Sync custom field values - always sync if custom_fields key exists
+            if ($hasCustomFields) {
+                $this->syncCustomFields($ticket, $customFieldsData);
+            }
+
             if (array_key_exists('ticket_status_id', $data) && (int) $data['ticket_status_id'] !== (int) $originalStatusId) {
                 $this->recordStatusChange(
                     $ticket,
@@ -113,7 +134,7 @@ class TicketService implements TicketServiceInterface
                 );
             }
 
-            return $ticket->fresh(['assignees', 'status', 'priority', 'epic', 'parent', 'children']);
+            return $ticket->fresh(['assignees', 'status', 'priority', 'epic', 'parent', 'children', 'customValues']);
         });
     }
 
@@ -368,6 +389,27 @@ class TicketService implements TicketServiceInterface
                 $depth++;
             }
         }
+    }
+
+    /**
+     * Sync custom field values for a ticket.
+     *
+     * @param  array<string, mixed>  $customFieldsData
+     */
+    private function syncCustomFields(Ticket $ticket, array $customFieldsData): void
+    {
+        $values = [];
+        foreach ($customFieldsData as $fieldId => $value) {
+            if ($value !== null && $value !== '') {
+                $values[] = [
+                    'custom_field_id' => (int) $fieldId,
+                    'value' => $value,
+                ];
+            }
+        }
+
+        // Always sync, even if empty, to remove values not in the new set
+        $this->customFieldService->syncCustomValuesForTicket($ticket, $values);
     }
 
     /**

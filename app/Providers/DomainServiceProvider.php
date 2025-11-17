@@ -97,6 +97,16 @@ class DomainServiceProvider extends ServiceProvider
             \App\Infrastructure\Repositories\ProjectWorkflowRepository::class
         );
 
+        $this->app->bind(
+            \App\Domain\Repositories\ProjectCustomFieldRepositoryInterface::class,
+            \App\Infrastructure\Repositories\ProjectCustomFieldRepository::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\TicketCustomValueRepositoryInterface::class,
+            \App\Infrastructure\Repositories\TicketCustomValueRepository::class
+        );
+
         // Register Service bindings
         $this->app->bind(
             \App\Domain\Services\RoleServiceInterface::class,
@@ -156,6 +166,11 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Domain\Services\SprintServiceInterface::class,
             \App\Application\Services\SprintService::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Services\CustomFieldServiceInterface::class,
+            \App\Application\Services\CustomFieldService::class
         );
     }
 
