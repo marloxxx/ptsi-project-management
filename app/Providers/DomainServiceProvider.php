@@ -92,6 +92,11 @@ class DomainServiceProvider extends ServiceProvider
             \App\Infrastructure\Repositories\SprintRepository::class
         );
 
+        $this->app->bind(
+            \App\Domain\Repositories\ProjectWorkflowRepositoryInterface::class,
+            \App\Infrastructure\Repositories\ProjectWorkflowRepository::class
+        );
+
         // Register Service bindings
         $this->app->bind(
             \App\Domain\Services\RoleServiceInterface::class,

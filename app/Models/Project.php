@@ -131,6 +131,19 @@ class Project extends Model
         return $relation;
     }
 
+    /**
+     * @return HasOne<ProjectWorkflow>
+     *
+     * @phpstan-return HasOne<ProjectWorkflow, self>
+     */
+    public function workflow(): HasOne
+    {
+        /** @var HasOne<ProjectWorkflow, self> $relation */
+        $relation = $this->hasOne(ProjectWorkflow::class);
+
+        return $relation;
+    }
+
     public function getIsPinnedAttribute(): bool
     {
         return ! is_null($this->pinned_at);
