@@ -263,7 +263,6 @@ Acceptance Criteria:
 4. ✅ Create Filament UI for editing workflow transitions in Project settings.
 5. ✅ Tests covering transition validation (allowed/denied paths), history entries, and policy rules.
 
-### ✅ Phase 3: Issue Types, Sub-Tasks, and Dependencies (COMPLETED)
 1. ✅ Add `issue_type` field to tickets table.
 2. ✅ Add `parent_id` nullable FK for sub-tasks.
 3. ✅ Create `ticket_dependencies` table for dependency graph.
@@ -288,5 +287,17 @@ Acceptance Criteria:
 6. ✅ Implement `GlobalSearchServiceInterface` + `GlobalSearchService` for ticket/comment search with permissions.
 7. ✅ Create Filament Resource for managing saved filters (CRUD UI).
 8. ✅ Tests covering saved filter lifecycle, visibility rules, and search functionality.
+1. ✅ Add `project_custom_fields` table (project_id, key, label, type, options JSON, required, order, active).
+2. ✅ Add `ticket_custom_values` table (ticket_id, custom_field_id, value JSON).
+3. ✅ Create `ProjectCustomField` and `TicketCustomValue` models with relationships.
+4. ✅ Implement Repository interfaces and implementations for custom fields.
+5. ✅ Implement Service interfaces and implementations for custom fields management.
+6. ✅ Create Filament UI for managing custom fields in Project settings.
+7. ✅ Integrate dynamic custom fields into Ticket form schema.
+8. ✅ Update TicketService to handle custom field values.
+9. ✅ Create factories and seeders for custom fields.
+10. ✅ Tests covering create fields, fill and persist, filter/sort by custom field.
+
+All changes will follow existing conventions in `app/Application/Services`, `app/Domain/Services`, `app/Infrastructure`, `app/Filament`, and Policies, with thorough tests under `tests/Feature` and `tests/Unit`.
 
 

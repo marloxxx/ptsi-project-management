@@ -101,6 +101,16 @@ class DomainServiceProvider extends ServiceProvider
             \App\Domain\Repositories\SavedFilterRepositoryInterface::class,
             \App\Infrastructure\Repositories\SavedFilterRepository::class
         );
+      
+        $this->app->bind(
+            \App\Domain\Services\GlobalSearchServiceInterface::class,
+            \App\Application\Services\GlobalSearchService::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\TicketCustomValueRepositoryInterface::class,
+            \App\Infrastructure\Repositories\TicketCustomValueRepository::class
+        );
 
         // Register Service bindings
         $this->app->bind(
