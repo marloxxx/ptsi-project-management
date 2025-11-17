@@ -65,6 +65,17 @@ class TicketInfolist
                             ->color('warning')
                             ->placeholder('No epic assigned'),
 
+                        TextEntry::make('issue_type')
+                            ->label('Issue Type')
+                            ->badge()
+                            ->color('info'),
+
+                        TextEntry::make('parent.name')
+                            ->label('Parent Ticket')
+                            ->badge()
+                            ->color('gray')
+                            ->placeholder('No parent ticket'),
+
                         TextEntry::make('description')
                             ->label('Description')
                             ->placeholder('No description provided.')
@@ -121,6 +132,41 @@ class TicketInfolist
                             }),
                     ])
                     ->columns(2),
+
+                Section::make('Relationships')
+                    ->icon(Heroicon::OutlinedLink)
+                    ->schema([
+                        TextEntry::make('children')
+                            ->label('Sub-tasks')
+                            ->formatStateUsing(function (Ticket $record): string {
+                                $count = $record->children()->count();
+
+                                if ($count === 0) {
+                                    return 'No sub-tasks';
+                                }
+
+                                return sprintf('%d sub-task(s)', $count);
+                            })
+                            ->badge()
+                            ->color('success'),
+
+                        TextEntry::make('dependencies')
+                            ->label('Dependencies')
+                            ->formatStateUsing(function (Ticket $record): string {
+                                $count = $record->dependencies()->count();
+
+                                if ($count === 0) {
+                                    return 'No dependencies';
+                                }
+
+                                return sprintf('%d dependency(ies)', $count);
+                            })
+                            ->badge()
+                            ->color('warning'),
+                    ])
+                    ->columns(2)
+                    ->collapsible()
+                    ->collapsed(),
 
                 Section::make('Audit')
                     ->icon(Heroicon::OutlinedClock)

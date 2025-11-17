@@ -23,7 +23,7 @@ class TicketsTable
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
-                ->with(['project', 'status', 'priority', 'epic', 'creator', 'assignees']))
+                ->with(['project', 'status', 'priority', 'epic', 'creator', 'assignees', 'parent']))
             ->columns([
                 TextColumn::make('uuid')
                     ->label('Ticket ID')
@@ -70,6 +70,20 @@ class TicketsTable
 
                 TextColumn::make('epic.name')
                     ->label('Epic')
+                    ->sortable()
+                    ->searchable()
+                    ->placeholder('-')
+                    ->limit(30),
+
+                TextColumn::make('issue_type')
+                    ->label('Type')
+                    ->sortable()
+                    ->searchable()
+                    ->badge()
+                    ->color('info'),
+
+                TextColumn::make('parent.name')
+                    ->label('Parent')
                     ->sortable()
                     ->searchable()
                     ->placeholder('-')
