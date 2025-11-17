@@ -240,10 +240,10 @@ class TicketService implements TicketServiceInterface
         }
 
         if (! $workflow->isTransitionAllowed($fromStatusId, $toStatusId)) {
-            $fromStatusName = $fromStatusId
-                ? ($this->ticketStatusRepository->find($fromStatusId)?->name ?? 'Unknown')
-                : 'Initial';
-            $toStatusName = $this->ticketStatusRepository->find($toStatusId)?->name ?? 'Unknown';
+            $fromStatus = $fromStatusId ? $this->ticketStatusRepository->find($fromStatusId) : null;
+            $fromStatusName = ($fromStatus !== null ? $fromStatus->name : null) ?? ($fromStatusId ? 'Unknown' : 'Initial');
+            $toStatus = $this->ticketStatusRepository->find($toStatusId);
+            $toStatusName = ($toStatus !== null ? $toStatus->name : null) ?? 'Unknown';
 
             throw new RuntimeException(
                 sprintf(
@@ -323,14 +323,14 @@ class TicketService implements TicketServiceInterface
             ->where('ticket_comments.user_id', '!=', $actorId)
             ->with('author')
             ->get()
-            ->map(fn (TicketComment $comment): ?User => $comment->author)
+            ->map(fn(TicketComment $comment): ?User => $comment->author)
             ->filter();
 
         return $recipients
             ->merge($assignedUsers)
             ->merge($commenters)
-            ->filter(fn ($user): bool => $user instanceof User)
-            ->unique(fn (User $user): int => (int) $user->getKey())
+            ->filter(fn($user): bool => $user instanceof User)
+            ->unique(fn(User $user): int => (int) $user->getKey())
             ->values();
     }
 }

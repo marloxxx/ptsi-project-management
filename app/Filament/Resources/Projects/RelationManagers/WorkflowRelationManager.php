@@ -52,11 +52,10 @@ class WorkflowRelationManager extends RelationManager
                 ->schema([
                     Select::make('initial_statuses')
                         ->label('Initial Statuses')
-                        ->description('Statuses that can be assigned when creating a new ticket')
+                        ->helperText('Statuses that can be assigned when creating a new ticket. Select which statuses can be used when creating new tickets.')
                         ->options($statusOptions)
                         ->multiple()
-                        ->searchable()
-                        ->helperText('Select which statuses can be used when creating new tickets.'),
+                        ->searchable(),
 
                     Section::make('Status Transitions')
                         ->description('Define allowed transitions between statuses')
@@ -64,7 +63,7 @@ class WorkflowRelationManager extends RelationManager
                             $statuses->map(
                                 fn(TicketStatus $status) => CheckboxList::make("transitions.{$status->id}")
                                     ->label("From: {$status->name}")
-                                    ->description('Select allowed target statuses')
+                                    ->helperText('Select allowed target statuses')
                                     ->options($statusOptions)
                                     ->columns(2)
                                     ->descriptions(
@@ -104,7 +103,12 @@ class WorkflowRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->visible(fn(): bool => $this->getOwnerRecord()->workflow === null)
+                    ->visible(function (): bool {
+                        /** @var Project $project */
+                        $project = $this->getOwnerRecord();
+
+                        return $project->workflow === null;
+                    })
                     ->using(function (array $data): Model {
                         /** @var Project $project */
                         $project = $this->getOwnerRecord();
@@ -119,7 +123,7 @@ class WorkflowRelationManager extends RelationManager
                         ]);
                     }),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make()
                     ->using(function (ProjectWorkflow $record, array $data): Model {
                         $definition = [
@@ -161,10 +165,16 @@ class WorkflowRelationManager extends RelationManager
         return $formatted;
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        /** @var Project $project */
+        $project = $this->getOwnerRecord();
         /** @var ProjectWorkflow|null $workflow */
-        $workflow = $this->getOwnerRecord()->workflow;
+        $workflow = $project->workflow;
 
         if (! $workflow) {
             return $data;
@@ -176,8 +186,10 @@ class WorkflowRelationManager extends RelationManager
 
         // Transform transitions to form format
         $transitions = $definition['transitions'] ?? [];
-        foreach ($transitions as $fromStatusId => $toStatusIds) {
-            $data["transitions.{$fromStatusId}"] = $toStatusIds;
+        if (! empty($transitions)) {
+            foreach ($transitions as $fromStatusId => $toStatusIds) {
+                $data["transitions.{$fromStatusId}"] = $toStatusIds;
+            }
         }
 
         return $data;
