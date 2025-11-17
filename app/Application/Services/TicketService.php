@@ -127,8 +127,8 @@ class TicketService implements TicketServiceInterface
             throw new RuntimeException('Cannot delete ticket with sub-tasks. Please delete or reassign sub-tasks first.');
         }
 
-        // Check if ticket is blocking other tickets
-        $blockingDependencies = $ticket->dependencies()
+        // Check if ticket is blocking other tickets (other tickets depend on this ticket)
+        $blockingDependencies = $ticket->dependents()
             ->where('type', 'blocks')
             ->exists();
 
@@ -389,14 +389,14 @@ class TicketService implements TicketServiceInterface
             ->where('ticket_comments.user_id', '!=', $actorId)
             ->with('author')
             ->get()
-            ->map(fn (TicketComment $comment): ?User => $comment->author)
+            ->map(fn(TicketComment $comment): ?User => $comment->author)
             ->filter();
 
         return $recipients
             ->merge($assignedUsers)
             ->merge($commenters)
-            ->filter(fn ($user): bool => $user instanceof User)
-            ->unique(fn (User $user): int => (int) $user->getKey())
+            ->filter(fn($user): bool => $user instanceof User)
+            ->unique(fn(User $user): int => (int) $user->getKey())
             ->values();
     }
 }
