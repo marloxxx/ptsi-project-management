@@ -42,41 +42,53 @@ class UserResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return self::currentUser()?->can('users.view') ?? false;
+        return self::currentUser()?->can('viewAny', User::class) ?? false;
     }
 
     public static function canCreate(): bool
     {
-        return self::currentUser()?->can('users.create') ?? false;
+        return self::currentUser()?->can('create', User::class) ?? false;
     }
 
     public static function canEdit(Model $record): bool
     {
-        /** @var User $record */
-        return $record instanceof User ? self::currentUser()?->can('update', $record) ?? false : false;
+        if (! $record instanceof User) {
+            return false;
+        }
+
+        return self::currentUser()?->can('update', $record) ?? false;
     }
 
     public static function canDelete(Model $record): bool
     {
-        /** @var User $record */
-        return $record instanceof User ? self::currentUser()?->can('delete', $record) ?? false : false;
+        if (! $record instanceof User) {
+            return false;
+        }
+
+        return self::currentUser()?->can('delete', $record) ?? false;
     }
 
     public static function canDeleteAny(): bool
     {
-        return self::currentUser()?->can('users.delete') ?? false;
+        return self::currentUser()?->can('delete', User::class) ?? false;
     }
 
     public static function canForceDelete(Model $record): bool
     {
-        /** @var User $record */
-        return $record instanceof User ? self::currentUser()?->can('users.force-delete') ?? false : false;
+        if (! $record instanceof User) {
+            return false;
+        }
+
+        return self::currentUser()?->can('forceDelete', $record) ?? false;
     }
 
     public static function canRestore(Model $record): bool
     {
-        /** @var User $record */
-        return $record instanceof User ? self::currentUser()?->can('users.restore') ?? false : false;
+        if (! $record instanceof User) {
+            return false;
+        }
+
+        return self::currentUser()?->can('restore', $record) ?? false;
     }
 
     public static function form(Schema $schema): Schema

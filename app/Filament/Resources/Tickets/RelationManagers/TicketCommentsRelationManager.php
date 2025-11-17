@@ -56,10 +56,38 @@ class TicketCommentsRelationManager extends RelationManager
             TextColumn::make('body')->label('Comment')->limit(100)->wrap()->searchable(),
             TextColumn::make('is_internal')->label('Type')->badge()->color(fn (TicketComment $record): string => $record->is_internal ? 'warning' : 'success')->formatStateUsing(fn (TicketComment $record): string => $record->is_internal ? 'Internal' : 'Public'),
             TextColumn::make('created_at')->label('Created')->dateTime('M d, Y \a\t H:i')->sortable(),
-        ])->headerActions([CreateAction::make()->visible(fn (): bool => $this->currentUser()?->can('tickets.comment') ?? false)])->recordActions([
-            ViewAction::make()->visible(fn (): bool => $this->currentUser()?->can('tickets.view') ?? false),
-            EditAction::make()->visible(fn (): bool => $this->currentUser()?->can('tickets.comment') ?? false),
-            DeleteAction::make()->visible(fn (): bool => $this->currentUser()?->can('tickets.comment') ?? false)->requiresConfirmation(),
+        ])->headerActions([
+            CreateAction::make()
+                ->authorize(fn (): bool => $this->canCreate())
+                ->visible(fn (): bool => $this->canCreate())
+                ->mutateDataUsing(function (array $data): array {
+                    // Ensure user_id is set if not provided
+                    if (! array_key_exists('user_id', $data) || $data['user_id'] === null) {
+                        $user = $this->currentUser();
+                        if ($user) {
+                            $data['user_id'] = $user->getKey();
+                        } else {
+                            // Fallback to Auth::id() if currentUser() returns null
+                            $userId = Auth::id();
+                            if ($userId) {
+                                $data['user_id'] = $userId;
+                            }
+                        }
+                    }
+
+                    return $data;
+                }),
+        ])->recordActions([
+            ViewAction::make()
+                ->authorize(fn (TicketComment $record): bool => $this->canViewRecord($record))
+                ->visible(fn (TicketComment $record): bool => $this->canViewRecord($record)),
+            EditAction::make()
+                ->authorize(fn (TicketComment $record): bool => $this->canEditRecord($record))
+                ->visible(fn (TicketComment $record): bool => $this->canEditRecord($record)),
+            DeleteAction::make()
+                ->authorize(fn (TicketComment $record): bool => $this->canDeleteRecord($record))
+                ->visible(fn (TicketComment $record): bool => $this->canDeleteRecord($record))
+                ->requiresConfirmation(),
         ])->emptyStateHeading('No comments yet')->emptyStateDescription('Add comments to track progress and communicate with the team.');
     }
 
@@ -68,7 +96,28 @@ class TicketCommentsRelationManager extends RelationManager
      */
     protected function handleRecordCreation(array $data): Model
     {
-        return $this->ticketService->addComment($this->resolveTicketId(), $data);
+        $ticket = $this->getOwnerRecord();
+
+        if (! $ticket instanceof Ticket) {
+            throw new InvalidArgumentException('Unable to resolve ticket context.');
+        }
+
+        // user_id should already be set by mutateDataUsing() on CreateAction
+        // This is just a fallback in case it's still not set
+        if (! array_key_exists('user_id', $data) || $data['user_id'] === null) {
+            $user = $this->currentUser();
+            if ($user) {
+                $data['user_id'] = $user->getKey();
+            } else {
+                // Fallback to Auth::id() if currentUser() returns null
+                $userId = Auth::id();
+                if ($userId) {
+                    $data['user_id'] = $userId;
+                }
+            }
+        }
+
+        return $this->ticketService->addComment((int) $ticket->getKey(), $data);
     }
 
     /**
@@ -76,23 +125,20 @@ class TicketCommentsRelationManager extends RelationManager
      */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
+        if (! $record instanceof TicketComment) {
+            throw new InvalidArgumentException('Expected TicketComment model.');
+        }
+
         return $this->ticketService->updateComment((int) $record->getKey(), $data);
     }
 
     protected function handleRecordDeletion(Model $record): void
     {
-        /** @var TicketComment $record */
-        $this->ticketService->deleteComment((int) $record->getKey());
-    }
-
-    private function resolveTicketId(): int
-    {
-        $ticket = $this->getOwnerRecord();
-        if (! $ticket instanceof Ticket) {
-            throw new InvalidArgumentException('Unable to resolve ticket context.');
+        if (! $record instanceof TicketComment) {
+            throw new InvalidArgumentException('Expected TicketComment model.');
         }
 
-        return (int) $ticket->getKey();
+        $this->ticketService->deleteComment((int) $record->getKey());
     }
 
     private function currentUser(): ?User
@@ -100,5 +146,107 @@ class TicketCommentsRelationManager extends RelationManager
         $user = Auth::user();
 
         return $user instanceof User ? $user : null;
+    }
+
+    protected function canCreate(): bool
+    {
+        $user = $this->currentUser();
+        $ticket = $this->getOwnerRecord();
+
+        if (! $user || ! $ticket instanceof Ticket) {
+            return false;
+        }
+
+        // Load project and members if not loaded
+        if (! $ticket->relationLoaded('project')) {
+            $ticket->load('project.members');
+        }
+
+        // Check if user is project member
+        if (! $ticket->project->members->contains('id', $user->getKey())) {
+            return false;
+        }
+
+        // Admin yang adalah project member selalu boleh
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            return true;
+        }
+
+        // Check permission - use permission string directly for RelationManager context
+        return $user->hasPermissionTo('tickets.comment');
+    }
+
+    protected function canViewRecord(Model $record): bool
+    {
+        if (! $record instanceof TicketComment) {
+            return false;
+        }
+
+        $user = $this->currentUser();
+
+        if (! $user) {
+            return false;
+        }
+
+        // Load ticket and project with members if not loaded
+        if (! $record->relationLoaded('ticket')) {
+            $record->load('ticket.project.members');
+        }
+
+        return $user->can('view', $record);
+    }
+
+    protected function canEditRecord(Model $record): bool
+    {
+        if (! $record instanceof TicketComment) {
+            return false;
+        }
+
+        $user = $this->currentUser();
+
+        if (! $user) {
+            return false;
+        }
+
+        // Load ticket and project with members if not loaded
+        if (! $record->relationLoaded('ticket')) {
+            $record->load('ticket.project.members');
+        }
+
+        // Admin yang adalah project member selalu boleh
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            if ($record->ticket->project->members->contains('id', $user->getKey())) {
+                return true;
+            }
+        }
+
+        return $user->can('update', $record);
+    }
+
+    protected function canDeleteRecord(Model $record): bool
+    {
+        if (! $record instanceof TicketComment) {
+            return false;
+        }
+
+        $user = $this->currentUser();
+
+        if (! $user) {
+            return false;
+        }
+
+        // Load ticket and project with members if not loaded
+        if (! $record->relationLoaded('ticket')) {
+            $record->load('ticket.project.members');
+        }
+
+        // Admin yang adalah project member selalu boleh
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            if ($record->ticket->project->members->contains('id', $user->getKey())) {
+                return true;
+            }
+        }
+
+        return $user->can('delete', $record);
     }
 }

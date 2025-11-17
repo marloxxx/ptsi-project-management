@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Relation Manager & Resource Consistency**
+  - Created `EpicPolicy` following `SprintPolicy` pattern for consistent authorization
+  - Created `ProjectNotePolicy` following `SprintPolicy` pattern for consistent authorization
+  - Created `TicketStatusPolicy` following `SprintPolicy` pattern for consistent authorization
+  - Created `TicketCommentPolicy` following `SprintPolicy` pattern for consistent authorization
+  - Created `TicketPolicy` following `SprintPolicy` pattern for consistent authorization
+  - Created `ProjectPolicy` following `UserPolicy` pattern for consistent authorization
+  - Updated `EpicsRelationManager` to match `SprintsRelationManager` pattern with proper authorization methods
+  - Updated `ProjectNotesRelationManager` to match `SprintsRelationManager` pattern with proper authorization and `created_by` handling
+  - Updated `TicketStatusesRelationManager` to match `SprintsRelationManager` pattern with proper authorization methods
+  - Updated `TicketCommentsRelationManager` to match `SprintsRelationManager` pattern with proper authorization and `user_id` handling
+  - Updated `TicketResource`, `UserResource`, `UnitResource`, `RoleResource`, `ProjectResource`, and `ActivityLogResource` to use policy-based authorization consistently
+  - Added comprehensive test coverage: `EpicManagementTest`, `ProjectNoteManagementTest`, `TicketStatusManagementTest`, `TicketCommentManagementTest`, `TicketResourceTest`, `UserResourceTest`, `UnitResourceTest`, `RoleResourceTest`, and `ActivityLogResourceTest`
 - **Phase 0: Foundation**
   - Laravel 12.x dengan struktur Clean Architecture
   - Filament 4.x dengan PTSI branding (Dark Blue, Sky Blue, Tosca Green)
@@ -80,6 +93,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced dashboard widget responsive layout
 - Optimized table performance dan queries
 - Updated project board dengan better UX
+- Standardized all relation managers (`EpicsRelationManager`, `ProjectNotesRelationManager`, `TicketStatusesRelationManager`, `TicketCommentsRelationManager`) to follow `SprintsRelationManager` pattern for consistency
+- Standardized all resources (`TicketResource`, `UserResource`, `UnitResource`, `RoleResource`, `ProjectResource`, `ActivityLogResource`) to use policy-based authorization consistently
+- Enhanced authorization checks in relation managers with project/ticket membership validation
+- All relation managers and resources now use consistent policy-based authorization with proper project/ticket membership checks
+- Updated `ProjectResource` to use `ProjectPolicy` instead of direct permission checks
+- Updated `ActivityLogResource` to use `ActivityLogPolicy` consistently with `viewAny` method
 
 ### Fixed
 - Resolved PHPStan static analysis errors

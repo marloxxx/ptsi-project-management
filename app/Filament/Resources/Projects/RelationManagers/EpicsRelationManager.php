@@ -108,15 +108,19 @@ class EpicsRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->visible(fn (): bool => $this->currentUser()?->can('epics.create') ?? false),
+                    ->authorize(fn (): bool => $this->canCreate())
+                    ->visible(fn (): bool => $this->canCreate()),
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->visible(fn (): bool => $this->currentUser()?->can('epics.view') ?? false),
+                    ->authorize(fn (Epic $record): bool => $this->canViewRecord($record))
+                    ->visible(fn (Epic $record): bool => $this->canViewRecord($record)),
                 EditAction::make()
-                    ->visible(fn (): bool => $this->currentUser()?->can('epics.update') ?? false),
+                    ->authorize(fn (Epic $record): bool => $this->canEditRecord($record))
+                    ->visible(fn (Epic $record): bool => $this->canEditRecord($record)),
                 DeleteAction::make()
-                    ->visible(fn (): bool => $this->currentUser()?->can('epics.delete') ?? false)
+                    ->authorize(fn (Epic $record): bool => $this->canDeleteRecord($record))
+                    ->visible(fn (Epic $record): bool => $this->canDeleteRecord($record))
                     ->requiresConfirmation(),
             ])
             ->emptyStateHeading('No epics yet')
@@ -128,7 +132,13 @@ class EpicsRelationManager extends RelationManager
      */
     protected function handleRecordCreation(array $data): Model
     {
-        return $this->projectService->addEpic($this->resolveProjectId(), $data);
+        $project = $this->getOwnerRecord();
+
+        if (! $project instanceof Project) {
+            throw new InvalidArgumentException('Unable to resolve project context.');
+        }
+
+        return $this->projectService->addEpic((int) $project->getKey(), $data);
     }
 
     /**
@@ -152,24 +162,112 @@ class EpicsRelationManager extends RelationManager
         $this->projectService->deleteEpic((int) $record->getKey());
     }
 
-    private function resolveProjectId(): int
-    {
-        $project = $this->getOwnerRecord();
-
-        if (! $project instanceof Project) {
-            throw new InvalidArgumentException('Unable to resolve project context.');
-        }
-
-        return (int) $project->getKey();
-    }
-
-    /**
-     * Get the current user.
-     */
     private function currentUser(): ?User
     {
         $user = Auth::user();
 
         return $user instanceof User ? $user : null;
+    }
+
+    protected function canCreate(): bool
+    {
+        $user = $this->currentUser();
+        $project = $this->getOwnerRecord();
+
+        if (! $user || ! $project instanceof Project) {
+            return false;
+        }
+
+        // Load members if not loaded
+        if (! $project->relationLoaded('members')) {
+            $project->load('members');
+        }
+
+        // Check if user is project member
+        if (! $project->members->contains('id', $user->getKey())) {
+            return false;
+        }
+
+        // Admin yang adalah project member selalu boleh
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            return true;
+        }
+
+        // Check permission - use permission string directly for RelationManager context
+        return $user->hasPermissionTo('epics.create');
+    }
+
+    protected function canViewRecord(Model $record): bool
+    {
+        if (! $record instanceof Epic) {
+            return false;
+        }
+
+        $user = $this->currentUser();
+
+        if (! $user) {
+            return false;
+        }
+
+        // Load project and members if not loaded
+        if (! $record->relationLoaded('project')) {
+            $record->load('project.members');
+        }
+
+        return $user->can('view', $record);
+    }
+
+    protected function canEditRecord(Model $record): bool
+    {
+        if (! $record instanceof Epic) {
+            return false;
+        }
+
+        $user = $this->currentUser();
+
+        if (! $user) {
+            return false;
+        }
+
+        // Load project and members if not loaded
+        if (! $record->relationLoaded('project')) {
+            $record->load('project.members');
+        }
+
+        // Admin yang adalah project member selalu boleh
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            if ($record->project->members->contains('id', $user->getKey())) {
+                return true;
+            }
+        }
+
+        return $user->can('update', $record);
+    }
+
+    protected function canDeleteRecord(Model $record): bool
+    {
+        if (! $record instanceof Epic) {
+            return false;
+        }
+
+        $user = $this->currentUser();
+
+        if (! $user) {
+            return false;
+        }
+
+        // Load project and members if not loaded
+        if (! $record->relationLoaded('project')) {
+            $record->load('project.members');
+        }
+
+        // Admin yang adalah project member selalu boleh
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            if ($record->project->members->contains('id', $user->getKey())) {
+                return true;
+            }
+        }
+
+        return $user->can('delete', $record);
     }
 }

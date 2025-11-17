@@ -86,29 +86,35 @@ class ProjectResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return self::currentUser()?->can('projects.view') ?? false;
+        return self::currentUser()?->can('viewAny', Project::class) ?? false;
     }
 
     public static function canCreate(): bool
     {
-        return self::currentUser()?->can('projects.create') ?? false;
+        return self::currentUser()?->can('create', Project::class) ?? false;
     }
 
     public static function canEdit(Model $record): bool
     {
-        /** @var Project $record */
-        return self::currentUser()?->can('projects.update') ?? false;
+        if (! $record instanceof Project) {
+            return false;
+        }
+
+        return self::currentUser()?->can('update', $record) ?? false;
     }
 
     public static function canDelete(Model $record): bool
     {
-        /** @var Project $record */
-        return self::currentUser()?->can('projects.delete') ?? false;
+        if (! $record instanceof Project) {
+            return false;
+        }
+
+        return self::currentUser()?->can('delete', $record) ?? false;
     }
 
     public static function canDeleteAny(): bool
     {
-        return self::currentUser()?->can('projects.delete') ?? false;
+        return self::currentUser()?->can('delete', Project::class) ?? false;
     }
 
     public static function getNavigationLabel(): string

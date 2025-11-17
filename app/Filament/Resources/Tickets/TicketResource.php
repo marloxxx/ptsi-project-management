@@ -78,12 +78,12 @@ class TicketResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return self::currentUser()?->can('tickets.view') ?? false;
+        return self::currentUser()?->can('viewAny', Ticket::class) ?? false;
     }
 
     public static function canCreate(): bool
     {
-        return self::currentUser()?->can('tickets.create') ?? false;
+        return self::currentUser()?->can('create', Ticket::class) ?? false;
     }
 
     public static function canEdit(Model $record): bool
@@ -92,7 +92,7 @@ class TicketResource extends Resource
             return false;
         }
 
-        return self::currentUser()?->can('tickets.update') ?? false;
+        return self::currentUser()?->can('update', $record) ?? false;
     }
 
     public static function canDelete(Model $record): bool
@@ -101,12 +101,12 @@ class TicketResource extends Resource
             return false;
         }
 
-        return self::currentUser()?->can('tickets.delete') ?? false;
+        return self::currentUser()?->can('delete', $record) ?? false;
     }
 
     public static function canDeleteAny(): bool
     {
-        return self::currentUser()?->can('tickets.delete') ?? false;
+        return self::currentUser()?->can('delete', Ticket::class) ?? false;
     }
 
     public static function getNavigationLabel(): string

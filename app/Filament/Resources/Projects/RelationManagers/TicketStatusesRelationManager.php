@@ -98,13 +98,16 @@ class TicketStatusesRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->visible(fn (): bool => self::currentUser()?->can('projects.manage-statuses') ?? false),
+                    ->authorize(fn (): bool => $this->canCreate())
+                    ->visible(fn (): bool => $this->canCreate()),
             ])
             ->recordActions([
                 EditAction::make()
-                    ->visible(fn (): bool => self::currentUser()?->can('projects.manage-statuses') ?? false),
+                    ->authorize(fn (TicketStatus $record): bool => $this->canEditRecord($record))
+                    ->visible(fn (TicketStatus $record): bool => $this->canEditRecord($record)),
                 DeleteAction::make()
-                    ->visible(fn (): bool => self::currentUser()?->can('projects.manage-statuses') ?? false)
+                    ->authorize(fn (TicketStatus $record): bool => $this->canDeleteRecord($record))
+                    ->visible(fn (TicketStatus $record): bool => $this->canDeleteRecord($record))
                     ->requiresConfirmation(),
             ])
             ->emptyStateHeading('No ticket statuses configured')
@@ -116,6 +119,12 @@ class TicketStatusesRelationManager extends RelationManager
      */
     protected function handleRecordCreation(array $data): Model
     {
+        $project = $this->getOwnerRecord();
+
+        if (! $project instanceof Project) {
+            throw new InvalidArgumentException('Unable to resolve project context.');
+        }
+
         $payload = [
             'name' => Arr::get($data, 'name'),
             'color' => Arr::get($data, 'color', '#2563EB'),
@@ -126,7 +135,7 @@ class TicketStatusesRelationManager extends RelationManager
             $payload['sort_order'] = (int) $data['sort_order'];
         }
 
-        return $this->projectService->addStatus($this->resolveProjectId(), $payload);
+        return $this->projectService->addStatus((int) $project->getKey(), $payload);
     }
 
     /**
@@ -160,24 +169,92 @@ class TicketStatusesRelationManager extends RelationManager
         $this->projectService->removeStatus((int) $record->getKey());
     }
 
-    private function resolveProjectId(): int
-    {
-        $project = $this->getOwnerRecord();
-
-        if (! $project instanceof Project) {
-            throw new InvalidArgumentException('Unable to resolve project context.');
-        }
-
-        return (int) $project->getKey();
-    }
-
-    /**
-     * Get the current user.
-     */
     private function currentUser(): ?User
     {
         $user = Auth::user();
 
         return $user instanceof User ? $user : null;
+    }
+
+    protected function canCreate(): bool
+    {
+        $user = $this->currentUser();
+        $project = $this->getOwnerRecord();
+
+        if (! $user || ! $project instanceof Project) {
+            return false;
+        }
+
+        // Load members if not loaded
+        if (! $project->relationLoaded('members')) {
+            $project->load('members');
+        }
+
+        // Check if user is project member
+        if (! $project->members->contains('id', $user->getKey())) {
+            return false;
+        }
+
+        // Admin yang adalah project member selalu boleh
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            return true;
+        }
+
+        // Check permission - use permission string directly for RelationManager context
+        return $user->hasPermissionTo('projects.manage-statuses');
+    }
+
+    protected function canEditRecord(Model $record): bool
+    {
+        if (! $record instanceof TicketStatus) {
+            return false;
+        }
+
+        $user = $this->currentUser();
+
+        if (! $user) {
+            return false;
+        }
+
+        // Load project and members if not loaded
+        if (! $record->relationLoaded('project')) {
+            $record->load('project.members');
+        }
+
+        // Admin yang adalah project member selalu boleh
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            if ($record->project->members->contains('id', $user->getKey())) {
+                return true;
+            }
+        }
+
+        return $user->can('update', $record);
+    }
+
+    protected function canDeleteRecord(Model $record): bool
+    {
+        if (! $record instanceof TicketStatus) {
+            return false;
+        }
+
+        $user = $this->currentUser();
+
+        if (! $user) {
+            return false;
+        }
+
+        // Load project and members if not loaded
+        if (! $record->relationLoaded('project')) {
+            $record->load('project.members');
+        }
+
+        // Admin yang adalah project member selalu boleh
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            if ($record->project->members->contains('id', $user->getKey())) {
+                return true;
+            }
+        }
+
+        return $user->can('delete', $record);
     }
 }
