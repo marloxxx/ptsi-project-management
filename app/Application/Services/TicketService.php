@@ -44,6 +44,11 @@ class TicketService implements TicketServiceInterface
                 $this->validateTransition(null, (int) $data['ticket_status_id'], (int) $data['project_id']);
             }
 
+            // Validate parent ticket if provided
+            if (isset($data['parent_id'])) {
+                $this->validateParentTicket((int) $data['parent_id'], (int) ($data['project_id'] ?? 0));
+            }
+
             /** @var Ticket $ticket */
             $ticket = $this->ticketRepository->create($data);
 
@@ -58,7 +63,7 @@ class TicketService implements TicketServiceInterface
                 'Ticket created'
             );
 
-            return $ticket->fresh(['assignees', 'status', 'project']);
+            return $ticket->fresh(['assignees', 'status', 'project', 'parent', 'children']);
         });
     }
 
@@ -83,6 +88,16 @@ class TicketService implements TicketServiceInterface
                 );
             }
 
+            // Validate parent ticket if being changed
+            if (array_key_exists('parent_id', $data)) {
+                $newParentId = $data['parent_id'] ? (int) $data['parent_id'] : null;
+                if ($newParentId !== $ticket->parent_id) {
+                    if ($newParentId !== null) {
+                        $this->validateParentTicket($newParentId, (int) $ticket->project_id, $ticketId);
+                    }
+                }
+            }
+
             $ticket = $this->ticketRepository->update($ticket, $data);
 
             if ($assigneeIds !== null) {
@@ -98,13 +113,28 @@ class TicketService implements TicketServiceInterface
                 );
             }
 
-            return $ticket->fresh(['assignees', 'status', 'priority', 'epic']);
+            return $ticket->fresh(['assignees', 'status', 'priority', 'epic', 'parent', 'children']);
         });
     }
 
     public function delete(int $ticketId): bool
     {
         $ticket = $this->findTicketOrFail($ticketId);
+        $ticket->loadMissing(['children', 'dependencies', 'dependents']);
+
+        // Prevent deletion if ticket has children
+        if ($ticket->children->isNotEmpty()) {
+            throw new RuntimeException('Cannot delete ticket with sub-tasks. Please delete or reassign sub-tasks first.');
+        }
+
+        // Check if ticket is blocking other tickets
+        $blockingDependencies = $ticket->dependencies()
+            ->where('type', 'blocks')
+            ->exists();
+
+        if ($blockingDependencies) {
+            throw new RuntimeException('Cannot delete ticket that is blocking other tickets. Please remove dependencies first.');
+        }
 
         return $this->ticketRepository->delete($ticket);
     }
@@ -302,6 +332,42 @@ class TicketService implements TicketServiceInterface
         }
 
         Notification::send($recipients, new TicketCommentUpdated($ticket, $comment));
+    }
+
+    /**
+     * Validate parent ticket relationship.
+     *
+     * @throws RuntimeException
+     */
+    protected function validateParentTicket(int $parentId, int $projectId, ?int $excludeTicketId = null): void
+    {
+        $parent = $this->ticketRepository->find($parentId);
+
+        if (! $parent) {
+            throw new RuntimeException('Parent ticket not found.');
+        }
+
+        if ((int) $parent->project_id !== $projectId) {
+            throw new RuntimeException('Parent ticket must belong to the same project.');
+        }
+
+        // Prevent circular reference
+        if ($excludeTicketId && $parentId === $excludeTicketId) {
+            throw new RuntimeException('A ticket cannot be its own parent.');
+        }
+
+        // Check for circular reference in parent chain
+        if ($excludeTicketId) {
+            $currentParent = $parent;
+            $depth = 0;
+            while ($currentParent && $depth < 10) { // Prevent infinite loop
+                if ((int) $currentParent->id === $excludeTicketId) {
+                    throw new RuntimeException('Circular reference detected. This would create a loop in the parent-child relationship.');
+                }
+                $currentParent = $currentParent->parent;
+                $depth++;
+            }
+        }
     }
 
     /**

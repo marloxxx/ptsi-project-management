@@ -139,7 +139,7 @@ class TicketResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['project', 'status', 'priority', 'epic', 'creator', 'assignees']);
+            ->with(['project', 'status', 'priority', 'epic', 'creator', 'assignees', 'parent', 'children']);
     }
 
     /**

@@ -113,6 +113,44 @@ class TicketForm
                                         'xl' => 3,
                                     ])
                                     ->placeholder('Enter a descriptive title for this ticket'),
+
+                                Select::make('issue_type')
+                                    ->label('Issue Type')
+                                    ->required()
+                                    ->default('Task')
+                                    ->options([
+                                        'Bug' => 'Bug',
+                                        'Task' => 'Task',
+                                        'Story' => 'Story',
+                                        'Epic' => 'Epic',
+                                    ])
+                                    ->helperText('Type of issue this ticket represents.'),
+
+                                Select::make('parent_id')
+                                    ->label('Parent Ticket')
+                                    ->searchable()
+                                    ->preload()
+                                    ->options(function (callable $get): array {
+                                        $projectId = $get('project_id');
+                                        $currentTicketId = $get('id');
+
+                                        if (! $projectId) {
+                                            return [];
+                                        }
+
+                                        $query = \App\Models\Ticket::query()
+                                            ->where('project_id', $projectId)
+                                            ->orderBy('name');
+
+                                        // Exclude current ticket to prevent self-reference
+                                        if ($currentTicketId) {
+                                            $query->where('id', '!=', $currentTicketId);
+                                        }
+
+                                        return $query->pluck('name', 'id')->toArray();
+                                    })
+                                    ->nullable()
+                                    ->helperText('Optional parent ticket for sub-tasks.'),
                             ]),
                     ])
                     ->columnSpanFull(),

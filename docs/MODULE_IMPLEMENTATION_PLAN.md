@@ -263,16 +263,15 @@ Acceptance Criteria:
 4. ✅ Create Filament UI for editing workflow transitions in Project settings.
 5. ✅ Tests covering transition validation (allowed/denied paths), history entries, and policy rules.
 
-### 🚧 Phase 3: Issue Types, Sub-Tasks, and Dependencies (PENDING)
+### ✅ Phase 3: Issue Types, Sub-Tasks, and Dependencies (COMPLETED)
+1. ✅ Add `issue_type` field to tickets table.
+2. ✅ Add `parent_id` nullable FK for sub-tasks.
+3. ✅ Create `ticket_dependencies` table for dependency graph.
+4. ✅ Update TicketService to handle parent-child relationships and dependencies.
+5. ✅ Create Filament UI for managing issue types, sub-tasks, and dependencies.
+6. ✅ Tests covering parent-child relationships and dependency constraints.
 
-## Immediate Next Steps (Phase 3)
-
-1. Add `issue_type` field to tickets table.
-2. Add `parent_id` nullable FK for sub-tasks.
-3. Create `ticket_dependencies` table for dependency graph.
-4. Update TicketService to handle parent-child relationships and dependencies.
-5. Create Filament UI for managing issue types, sub-tasks, and dependencies.
-6. Tests covering parent-child relationships and dependency constraints.
+### 🚧 Phase 4: Custom Fields per Project (PENDING)
 
 All changes will follow existing conventions in `app/Application/Services`, `app/Domain/Services`, `app/Infrastructure`, `app/Filament`, and Policies, with thorough tests under `tests/Feature` and `tests/Unit`.
 
