@@ -8,6 +8,7 @@ use App\Filament\Resources\Projects\Pages\CreateProject;
 use App\Filament\Resources\Projects\Pages\EditProject;
 use App\Filament\Resources\Projects\Pages\ListProjects;
 use App\Filament\Resources\Projects\Pages\ViewProject;
+use App\Filament\Resources\Projects\RelationManagers\CustomFieldsRelationManager;
 use App\Filament\Resources\Projects\RelationManagers\EpicsRelationManager;
 use App\Filament\Resources\Projects\RelationManagers\ProjectNotesRelationManager;
 use App\Filament\Resources\Projects\RelationManagers\SprintsRelationManager;
@@ -65,6 +66,7 @@ class ProjectResource extends Resource
         return [
             TicketStatusesRelationManager::class,
             WorkflowRelationManager::class,
+            CustomFieldsRelationManager::class,
             EpicsRelationManager::class,
             SprintsRelationManager::class,
             ProjectNotesRelationManager::class,

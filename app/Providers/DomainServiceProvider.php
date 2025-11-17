@@ -97,6 +97,26 @@ class DomainServiceProvider extends ServiceProvider
             \App\Infrastructure\Repositories\ProjectWorkflowRepository::class
         );
 
+        $this->app->bind(
+            \App\Domain\Repositories\SavedFilterRepositoryInterface::class,
+            \App\Infrastructure\Repositories\SavedFilterRepository::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Services\GlobalSearchServiceInterface::class,
+            \App\Application\Services\GlobalSearchService::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\TicketCustomValueRepositoryInterface::class,
+            \App\Infrastructure\Repositories\TicketCustomValueRepository::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\ProjectCustomFieldRepositoryInterface::class,
+            \App\Infrastructure\Repositories\ProjectCustomFieldRepository::class
+        );
+
         // Register Service bindings
         $this->app->bind(
             \App\Domain\Services\RoleServiceInterface::class,
@@ -156,6 +176,21 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Domain\Services\SprintServiceInterface::class,
             \App\Application\Services\SprintService::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Services\SavedFilterServiceInterface::class,
+            \App\Application\Services\SavedFilterService::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Services\GlobalSearchServiceInterface::class,
+            \App\Application\Services\GlobalSearchService::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Services\CustomFieldServiceInterface::class,
+            \App\Application\Services\CustomFieldService::class
         );
     }
 

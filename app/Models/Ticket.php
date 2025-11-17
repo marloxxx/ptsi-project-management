@@ -259,4 +259,15 @@ class Ticket extends Model
 
         return $relation;
     }
+
+    /**
+     * @return HasMany<TicketCustomValue, Ticket>
+     */
+    public function customValues(): HasMany
+    {
+        /** @var HasMany<TicketCustomValue, Ticket> $relation */
+        $relation = $this->hasMany(TicketCustomValue::class);
+
+        return $relation;
+    }
 }
