@@ -279,8 +279,14 @@ Acceptance Criteria:
 5. ✅ Integrate custom fields into ticket form and table.
 6. ✅ Tests covering field creation, value persistence, and filtering.
 
-### 🚧 Phase 6: Saved Filters & Global Search (IN PROGRESS)
-
-All changes will follow existing conventions in `app/Application/Services`, `app/Domain/Services`, `app/Infrastructure`, `app/Filament`, and Policies, with thorough tests under `tests/Feature` and `tests/Unit`.
+### ✅ Phase 6: Saved Filters & Global Search (COMPLETED)
+1. ✅ Add `saved_filters` table with polymorphic owner, visibility, and project scoping.
+2. ✅ Create `SavedFilter` model with relationships and casts.
+3. ✅ Implement `SavedFilterRepositoryInterface` + `SavedFilterRepository` with owner and accessibility queries.
+4. ✅ Implement `SavedFilterServiceInterface` + `SavedFilterService` (create/update/delete, get filter query).
+5. ✅ Create `SavedFilterPolicy` for authorization based on ownership and visibility.
+6. ✅ Implement `GlobalSearchServiceInterface` + `GlobalSearchService` for ticket/comment search with permissions.
+7. ✅ Create Filament Resource for managing saved filters (CRUD UI).
+8. ✅ Tests covering saved filter lifecycle, visibility rules, and search functionality.
 
 

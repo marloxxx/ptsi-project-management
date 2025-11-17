@@ -9,6 +9,7 @@ use App\Application\Policies\EpicPolicy;
 use App\Application\Policies\ProjectNotePolicy;
 use App\Application\Policies\ProjectPolicy;
 use App\Application\Policies\RolePolicy;
+use App\Application\Policies\SavedFilterPolicy;
 use App\Application\Policies\SprintPolicy;
 use App\Application\Policies\TicketCommentPolicy;
 use App\Application\Policies\TicketPolicy;
@@ -18,6 +19,7 @@ use App\Application\Policies\UserPolicy;
 use App\Models\Epic;
 use App\Models\Project;
 use App\Models\ProjectNote;
+use App\Models\SavedFilter;
 use App\Models\Sprint;
 use App\Models\Ticket;
 use App\Models\TicketComment;
@@ -47,5 +49,6 @@ class AuthServiceProvider extends ServiceProvider
         Ticket::class => TicketPolicy::class,
         TicketStatus::class => TicketStatusPolicy::class,
         TicketComment::class => TicketCommentPolicy::class,
+        SavedFilter::class => SavedFilterPolicy::class,
     ];
 }
