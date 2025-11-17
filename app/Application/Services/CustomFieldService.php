@@ -131,16 +131,17 @@ class CustomFieldService implements CustomFieldServiceInterface
     /**
      * Generate form schema components for custom fields.
      *
-     * @return array<int, \Filament\Forms\Components\Component>
+     * @return array<int, \Filament\Schemas\Components\Component>
      */
     public function generateFormSchemaForProject(int $projectId): array
     {
         $fields = $this->getActiveFieldsForProject($projectId);
+        /** @var array<int, \Filament\Schemas\Components\Component> $components */
         $components = [];
 
         foreach ($fields as $field) {
             $component = $this->createFormComponent($field);
-            if ($component) {
+            if ($component !== null) {
                 $components[] = $component;
             }
         }

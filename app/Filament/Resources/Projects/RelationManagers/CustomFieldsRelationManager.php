@@ -116,7 +116,7 @@ class CustomFieldsRelationManager extends RelationManager
                                     return empty($options) ? null : array_values($options);
                                 })
                                 ->formatStateUsing(function (?array $state): string {
-                                    if (empty($state) || ! is_array($state)) {
+                                    if (empty($state)) {
                                         return '';
                                     }
 

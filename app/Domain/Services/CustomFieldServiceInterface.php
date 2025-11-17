@@ -40,7 +40,7 @@ interface CustomFieldServiceInterface
     /**
      * Generate form schema components for custom fields.
      *
-     * @return array<int, \Filament\Forms\Components\Component>
+     * @return array<int, \Filament\Schemas\Components\Component>
      */
     public function generateFormSchemaForProject(int $projectId): array;
 }
