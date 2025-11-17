@@ -61,14 +61,14 @@ class WorkflowRelationManager extends RelationManager
                         ->description('Define allowed transitions between statuses')
                         ->schema(
                             $statuses->map(
-                                fn(TicketStatus $status) => CheckboxList::make("transitions.{$status->id}")
+                                fn (TicketStatus $status) => CheckboxList::make("transitions.{$status->id}")
                                     ->label("From: {$status->name}")
                                     ->helperText('Select allowed target statuses')
                                     ->options($statusOptions)
                                     ->columns(2)
                                     ->descriptions(
                                         $statuses->mapWithKeys(
-                                            fn(TicketStatus $target) => [$target->id => $target->is_completed ? 'Completed' : 'In Progress']
+                                            fn (TicketStatus $target) => [$target->id => $target->is_completed ? 'Completed' : 'In Progress']
                                         )->toArray()
                                     )
                             )->toArray()
@@ -83,7 +83,7 @@ class WorkflowRelationManager extends RelationManager
         return $table
             ->heading('Workflow')
             ->description('Configure allowed status transitions for tickets in this project')
-            ->modifyQueryUsing(fn(Builder $query): Builder => $query->limit(1))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->limit(1))
             ->columns([
                 TextColumn::make('project.name')
                     ->label('Project')

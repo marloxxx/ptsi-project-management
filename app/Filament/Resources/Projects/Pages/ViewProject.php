@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Projects\Pages;
 
 use App\Domain\Services\ProjectServiceInterface;
+use App\Filament\Pages\ProjectTimeline;
 use App\Filament\Resources\Projects\ProjectResource;
 use App\Filament\Widgets\SprintBurndownWidget;
 use App\Filament\Widgets\SprintVelocityWidget;
@@ -132,6 +133,17 @@ class ViewProject extends ViewRecord
                             ->send();
                     }),
             ])->button()->label('External Access'),
+            Action::make('viewTimeline')
+                ->label('View Timeline')
+                ->icon('heroicon-o-calendar-days')
+                ->color('info')
+                ->url(function (): string {
+                    /** @var Project $project */
+                    $project = $this->record;
+
+                    return ProjectTimeline::getUrl(['project' => $project->getKey()]);
+                })
+                ->openUrlInNewTab(),
             ActionGroup::make([
                 EditAction::make()
                     ->visible(fn (): bool => static::getResource()::canEdit($this->record)),
