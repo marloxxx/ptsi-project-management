@@ -103,4 +103,23 @@ class UnitResourceTest extends TestCase
         $this->assertSame('DO-02', $unit->code);
         $this->assertSame('inactive', $unit->status);
     }
+
+    public function test_admin_can_delete_unit(): void
+    {
+        $this->actingAsRole('admin');
+
+        $unit = Unit::factory()->create([
+            'name' => 'Direktorat Operasional',
+            'code' => 'DO-01',
+        ]);
+
+        // EditUnit now has delete action in header actions
+        Livewire::test(EditUnit::class, ['record' => $unit->getKey()])
+            ->callAction('delete')
+            ->assertNotified();
+
+        $this->assertDatabaseMissing('units', [
+            'id' => $unit->getKey(),
+        ]);
+    }
 }

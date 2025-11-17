@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Units\Pages;
 use App\Domain\Services\UnitServiceInterface;
 use App\Filament\Resources\Units\UnitResource;
 use App\Models\Unit;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -35,6 +36,15 @@ class EditUnit extends EditRecord
     protected function getSavedNotificationTitle(): ?string
     {
         return 'Unit updated';
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            DeleteAction::make()
+                ->visible(fn (): bool => static::getResource()::canDelete($this->record))
+                ->requiresConfirmation(),
+        ];
     }
 
     /**

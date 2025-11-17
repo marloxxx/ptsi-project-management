@@ -102,4 +102,22 @@ class RoleResourceTest extends TestCase
 
         $this->assertSame('updated_role', $role->name);
     }
+
+    public function test_admin_can_delete_role(): void
+    {
+        $this->actingAsRole('admin');
+
+        $role = Role::create([
+            'name' => 'test_role',
+            'guard_name' => 'web',
+        ]);
+
+        Livewire::test(EditRole::class, ['record' => $role->getKey()])
+            ->callAction('delete')
+            ->assertNotified();
+
+        $this->assertDatabaseMissing('roles', [
+            'id' => $role->getKey(),
+        ]);
+    }
 }
