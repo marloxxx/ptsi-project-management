@@ -287,16 +287,21 @@ Acceptance Criteria:
 6. ✅ Implement `GlobalSearchServiceInterface` + `GlobalSearchService` for ticket/comment search with permissions.
 7. ✅ Create Filament Resource for managing saved filters (CRUD UI).
 8. ✅ Tests covering saved filter lifecycle, visibility rules, and search functionality.
-1. ✅ Add `project_custom_fields` table (project_id, key, label, type, options JSON, required, order, active).
-2. ✅ Add `ticket_custom_values` table (ticket_id, custom_field_id, value JSON).
-3. ✅ Create `ProjectCustomField` and `TicketCustomValue` models with relationships.
-4. ✅ Implement Repository interfaces and implementations for custom fields.
-5. ✅ Implement Service interfaces and implementations for custom fields management.
-6. ✅ Create Filament UI for managing custom fields in Project settings.
-7. ✅ Integrate dynamic custom fields into Ticket form schema.
-8. ✅ Update TicketService to handle custom field values.
-9. ✅ Create factories and seeders for custom fields.
-10. ✅ Tests covering create fields, fill and persist, filter/sort by custom field.
+
+### ✅ Phase 7: Reporting & Analytics (COMPLETED)
+1. ✅ Extend `AnalyticsServiceInterface` and `AnalyticsRepositoryInterface` with new methods for reporting.
+2. ✅ Implement `getCumulativeFlowDiagram()` - tracks work in progress across statuses over time.
+3. ✅ Implement `getLeadCycleTime()` - calculates lead time (creation to completion) and cycle time (in-progress to completion).
+4. ✅ Implement `getThroughput()` - measures tickets completed per day with average and total metrics.
+5. ✅ Implement `getProjectBurndown()` - project-level burndown chart showing remaining work over time.
+6. ✅ Implement `getProjectVelocity()` - tracks completed tickets per week with average velocity calculation.
+7. ✅ Create `CumulativeFlowDiagramWidget` - Filament widget for CFD visualization.
+8. ✅ Create `LeadCycleTimeWidget` - Filament widget for lead/cycle time metrics and charts.
+9. ✅ Create `ThroughputWidget` - Filament widget for throughput visualization.
+10. ✅ Create `ProjectBurndownWidget` - Filament widget for project burndown chart.
+11. ✅ Create `ProjectVelocityWidget` - Filament widget for project velocity tracking.
+12. ✅ All analytics methods include caching (5-10 minutes TTL) for performance optimization.
+13. ✅ Tests covering all new analytics methods with proper data validation.
 
 All changes will follow existing conventions in `app/Application/Services`, `app/Domain/Services`, `app/Infrastructure`, `app/Filament`, and Policies, with thorough tests under `tests/Feature` and `tests/Unit`.
 
