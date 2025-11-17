@@ -34,6 +34,7 @@ class TicketStatusRepository implements TicketStatusRepositoryInterface
             'priority:id,name,color',
             'creator:id,name',
             'epic:id,name',
+            'sprint:id,name,state',
         ]);
 
         /** @var array<int, int> $assigneeIds */
@@ -47,7 +48,7 @@ class TicketStatusRepository implements TicketStatusRepositoryInterface
 
         return $project->ticketStatuses()
             ->with([
-                'tickets' => function ($query) use ($ticketRelations, $assigneeIds): void {
+                'tickets' => function ($query) use ($ticketRelations, $assigneeIds, $options): void {
                     $query->with($ticketRelations)
                         ->select([
                             'id',
@@ -55,6 +56,7 @@ class TicketStatusRepository implements TicketStatusRepositoryInterface
                             'ticket_status_id',
                             'priority_id',
                             'epic_id',
+                            'sprint_id',
                             'created_by',
                             'uuid',
                             'name',
@@ -70,6 +72,12 @@ class TicketStatusRepository implements TicketStatusRepositoryInterface
                         $query->whereHas('assignees', function ($assigneeQuery) use ($assigneeIds): void {
                             $assigneeQuery->whereIn('users.id', $assigneeIds);
                         });
+                    }
+
+                    /** @var int|null $sprintId */
+                    $sprintId = Arr::get($options, 'sprint_id');
+                    if ($sprintId !== null) {
+                        $query->where('sprint_id', $sprintId);
                     }
                 },
             ])

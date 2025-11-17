@@ -199,6 +199,13 @@
 
                                             <div class="flex items-center justify-between">
                                                 <div class="flex flex-wrap gap-1">
+                                                    @if ($ticket->sprint)
+                                                        <span
+                                                            class="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-1 text-[11px] font-medium text-purple-700 dark:bg-purple-500/10 dark:text-purple-300">
+                                                            <x-heroicon-m-calendar-days class="h-3.5 w-3.5" />
+                                                            {{ \Illuminate\Support\Str::limit($ticket->sprint->name, 12) }}
+                                                        </span>
+                                                    @endif
                                                     @forelse ($ticket->assignees as $assignee)
                                                         <span
                                                             class="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2 py-1 text-[11px] font-medium text-primary-700 dark:bg-primary-500/10 dark:text-primary-300">
@@ -218,6 +225,45 @@
                                                 </div>
 
                                                 <div class="flex items-center gap-2">
+                                                    @if ($this->canMoveTickets() && $this->sprints->isNotEmpty())
+                                                        <x-filament::dropdown>
+                                                            <x-slot name="trigger">
+                                                                <x-filament::icon-button
+                                                                    icon="heroicon-m-calendar-days" color="gray"
+                                                                    label="Assign Sprint" />
+                                                            </x-slot>
+                                                            <x-filament::dropdown.list>
+                                                                <x-filament::dropdown.list.item tag="button"
+                                                                    wire:click="assignTicketToSprint({{ $ticket->id }}, null)">
+                                                                    <span class="flex items-center gap-2">
+                                                                        <x-heroicon-m-x-mark class="h-4 w-4" />
+                                                                        <span>Remove from Sprint</span>
+                                                                    </span>
+                                                                </x-filament::dropdown.list.item>
+                                                                @if ($this->sprints->isNotEmpty())
+                                                                    <hr
+                                                                        class="my-1 border-gray-200 dark:border-gray-700" />
+                                                                @endif
+                                                                @foreach ($this->sprints as $sprint)
+                                                                    <x-filament::dropdown.list.item tag="button"
+                                                                        wire:click="assignTicketToSprint({{ $ticket->id }}, {{ $sprint->id }})">
+                                                                        <span class="flex items-center gap-2">
+                                                                            @if ($ticket->sprint_id === $sprint->id)
+                                                                                <x-heroicon-m-check
+                                                                                    class="h-4 w-4 text-success-600" />
+                                                                            @else
+                                                                                <x-heroicon-m-calendar-days
+                                                                                    class="h-4 w-4" />
+                                                                            @endif
+                                                                            <span>{{ $sprint->name }}</span>
+                                                                            <span
+                                                                                class="ml-auto text-xs text-gray-500">{{ $sprint->state }}</span>
+                                                                        </span>
+                                                                    </x-filament::dropdown.list.item>
+                                                                @endforeach
+                                                            </x-filament::dropdown.list>
+                                                        </x-filament::dropdown>
+                                                    @endif
                                                     @if ($this->canMoveTickets())
                                                         <x-filament::icon-button icon="heroicon-m-pencil-square"
                                                             color="gray" label="Edit"

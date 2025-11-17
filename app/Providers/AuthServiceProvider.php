@@ -6,8 +6,10 @@ namespace App\Providers;
 
 use App\Application\Policies\ActivityLogPolicy;
 use App\Application\Policies\RolePolicy;
+use App\Application\Policies\SprintPolicy;
 use App\Application\Policies\UnitPolicy;
 use App\Application\Policies\UserPolicy;
+use App\Models\Sprint;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -26,5 +28,6 @@ class AuthServiceProvider extends ServiceProvider
         Role::class => RolePolicy::class,
         Unit::class => UnitPolicy::class,
         Activity::class => ActivityLogPolicy::class,
+        Sprint::class => SprintPolicy::class,
     ];
 }

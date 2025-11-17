@@ -6,6 +6,8 @@ namespace App\Filament\Resources\Projects\Pages;
 
 use App\Domain\Services\ProjectServiceInterface;
 use App\Filament\Resources\Projects\ProjectResource;
+use App\Filament\Widgets\SprintBurndownWidget;
+use App\Filament\Widgets\SprintVelocityWidget;
 use App\Models\Project;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -142,6 +144,17 @@ class ViewProject extends ViewRecord
                         $this->redirect(static::getResource()::getUrl('index'));
                     }),
             ])->button()->label('Actions'),
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            SprintVelocityWidget::class,
+            SprintBurndownWidget::class,
         ];
     }
 }

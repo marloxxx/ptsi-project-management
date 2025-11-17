@@ -87,6 +87,11 @@ class DomainServiceProvider extends ServiceProvider
             \App\Infrastructure\Repositories\AnalyticsRepository::class
         );
 
+        $this->app->bind(
+            \App\Domain\Repositories\SprintRepositoryInterface::class,
+            \App\Infrastructure\Repositories\SprintRepository::class
+        );
+
         // Register Service bindings
         $this->app->bind(
             \App\Domain\Services\RoleServiceInterface::class,
@@ -141,6 +146,11 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Domain\Services\ExternalPortalServiceInterface::class,
             \App\Application\Services\ExternalPortalService::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Services\SprintServiceInterface::class,
+            \App\Application\Services\SprintService::class
         );
     }
 

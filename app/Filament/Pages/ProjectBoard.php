@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Domain\Services\SprintServiceInterface;
 use App\Domain\Services\TicketBoardServiceInterface;
 use App\Domain\Services\TicketServiceInterface;
 use App\Filament\Resources\Tickets\TicketResource;
 use App\Models\Project;
+use App\Models\Sprint;
 use App\Models\Ticket;
 use App\Models\TicketStatus;
 use App\Models\User;
@@ -49,9 +51,14 @@ class ProjectBoard extends Page
     /** @var Collection<int, User> */
     public Collection $projectUsers;
 
+    /** @var Collection<int, Sprint> */
+    public Collection $sprints;
+
     public ?Project $selectedProject = null;
 
     public ?int $selectedProjectId = null;
+
+    public ?int $selectedSprintId = null;
 
     /**
      * @var array<int, string>
@@ -69,6 +76,8 @@ class ProjectBoard extends Page
 
     private TicketServiceInterface $ticketService;
 
+    private SprintServiceInterface $sprintService;
+
     public static function canAccess(): bool
     {
         return self::currentUser()?->can('tickets.view') ?? false;
@@ -81,10 +90,12 @@ class ProjectBoard extends Page
 
     public function boot(
         TicketBoardServiceInterface $boardService,
-        TicketServiceInterface $ticketService
+        TicketServiceInterface $ticketService,
+        SprintServiceInterface $sprintService
     ): void {
         $this->boardService = $boardService;
         $this->ticketService = $ticketService;
+        $this->sprintService = $sprintService;
     }
 
     public function mount(?int $project = null): void
@@ -92,6 +103,7 @@ class ProjectBoard extends Page
         $this->projects = collect();
         $this->ticketStatuses = collect();
         $this->projectUsers = collect();
+        $this->sprints = collect();
 
         $userId = Auth::id();
 
@@ -160,7 +172,12 @@ class ProjectBoard extends Page
         try {
             $context = $this->boardService->getBoardContext($projectId, (int) $userId, [
                 'assignee_ids' => $assigneeFilter,
+                'sprint_id' => $this->selectedSprintId,
             ]);
+
+            // Load sprints for the project
+            $project = $context['project'];
+            $this->sprints = $this->sprintService->forProject($project)->values();
         } catch (Throwable $exception) {
             Notification::make()
                 ->title('Unable to load project board')
@@ -180,6 +197,11 @@ class ProjectBoard extends Page
     }
 
     public function updatedSelectedUserIds(): void
+    {
+        $this->loadTicketStatuses();
+    }
+
+    public function updatedSelectedSprintId(): void
     {
         $this->loadTicketStatuses();
     }
@@ -257,6 +279,44 @@ class ProjectBoard extends Page
         $this->redirect(TicketResource::getUrl('edit', ['record' => $ticketId]));
     }
 
+    public function assignTicketToSprint(int $ticketId, ?int $sprintId): void
+    {
+        if (! $this->canMoveTickets()) {
+            Notification::make()
+                ->title('Permission denied')
+                ->body('You do not have permission to assign tickets to sprint.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        try {
+            $ticket = Ticket::find($ticketId);
+
+            if (! $ticket) {
+                throw new \RuntimeException('Ticket not found.');
+            }
+
+            $data = ['sprint_id' => $sprintId];
+            $this->ticketService->update($ticketId, $data);
+            $this->loadTicketStatuses();
+
+            $sprintName = $sprintId ? Sprint::find($sprintId)?->name : 'No Sprint';
+            Notification::make()
+                ->title('Ticket assigned to sprint')
+                ->body(sprintf('Ticket assigned to %s', $sprintName))
+                ->success()
+                ->send();
+        } catch (Throwable $exception) {
+            Notification::make()
+                ->title('Unable to assign ticket to sprint')
+                ->body($exception->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
     protected function loadTicketStatuses(): void
     {
         if ($this->selectedProjectId === null) {
@@ -275,7 +335,9 @@ class ProjectBoard extends Page
         $this->selectedProjectId = null;
         $this->ticketStatuses = collect();
         $this->projectUsers = collect();
+        $this->sprints = collect();
         $this->selectedUserIds = [];
+        $this->selectedSprintId = null;
     }
 
     protected function applySortOrders(): void
@@ -369,6 +431,45 @@ class ProjectBoard extends Page
                     } else {
                         Notification::make()
                             ->title('Filter cleared')
+                            ->body('Showing all tickets.')
+                            ->info()
+                            ->send();
+                    }
+                }),
+            Action::make('filter_sprint')
+                ->label('Filter by Sprint')
+                ->icon('heroicon-m-calendar-days')
+                ->visible(fn (): bool => $this->selectedProject !== null && $this->sprints->isNotEmpty())
+                ->schema([
+                    \Filament\Forms\Components\Select::make('selectedSprintId')
+                        ->label('Sprint')
+                        ->options(fn (): array => [
+                            null => 'All Sprints',
+                            ...$this->sprints->pluck('name', 'id')->toArray(),
+                        ])
+                        ->nullable()
+                        ->searchable(),
+                ])
+                ->fillForm([
+                    'selectedSprintId' => $this->selectedSprintId,
+                ])
+                ->modalWidth('md')
+                ->color('info')
+                ->action(function (array $data): void {
+                    /** @var int|null $sprintId */
+                    $sprintId = $data['selectedSprintId'] ?? null;
+                    $this->selectedSprintId = $sprintId !== null ? (int) $sprintId : null;
+                    $this->loadTicketStatuses();
+
+                    if ($this->selectedSprintId !== null) {
+                        Notification::make()
+                            ->title('Sprint filter applied')
+                            ->body('Showing tickets for selected sprint.')
+                            ->success()
+                            ->send();
+                    } else {
+                        Notification::make()
+                            ->title('Sprint filter cleared')
                             ->body('Showing all tickets.')
                             ->info()
                             ->send();

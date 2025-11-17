@@ -10,6 +10,7 @@ use App\Filament\Resources\Projects\Pages\ListProjects;
 use App\Filament\Resources\Projects\Pages\ViewProject;
 use App\Filament\Resources\Projects\RelationManagers\EpicsRelationManager;
 use App\Filament\Resources\Projects\RelationManagers\ProjectNotesRelationManager;
+use App\Filament\Resources\Projects\RelationManagers\SprintsRelationManager;
 use App\Filament\Resources\Projects\RelationManagers\TicketStatusesRelationManager;
 use App\Filament\Resources\Projects\Schemas\ProjectForm;
 use App\Filament\Resources\Projects\Schemas\ProjectInfolist;
@@ -63,6 +64,7 @@ class ProjectResource extends Resource
         return [
             TicketStatusesRelationManager::class,
             EpicsRelationManager::class,
+            SprintsRelationManager::class,
             ProjectNotesRelationManager::class,
         ];
     }
