@@ -141,4 +141,59 @@ class TicketResourceTest extends TestCase
         $this->assertTrue($ticket->assignees->contains('id', $assignee->getKey()));
         $this->assertFalse($ticket->assignees->contains('id', $admin->getKey()));
     }
+
+    public function test_admin_can_view_ticket_details(): void
+    {
+        $admin = $this->actingAsRole('admin');
+
+        $project = Project::factory()->create();
+        $project->members()->attach($admin);
+
+        $status = TicketStatus::factory()
+            ->for($project)
+            ->create();
+
+        $priority = TicketPriority::factory()->create();
+
+        $ticket = Ticket::factory()
+            ->for($project)
+            ->for($status, 'status')
+            ->for($priority, 'priority')
+            ->create([
+                'created_by' => $admin->getKey(),
+            ]);
+
+        $this->get(route('filament.admin.resources.tickets.view', ['record' => $ticket->getKey()]))
+            ->assertOk();
+    }
+
+    public function test_admin_can_delete_ticket(): void
+    {
+        $admin = $this->actingAsRole('admin');
+
+        $project = Project::factory()->create();
+        $project->members()->attach($admin);
+
+        $status = TicketStatus::factory()
+            ->for($project)
+            ->create();
+
+        $priority = TicketPriority::factory()->create();
+
+        $ticket = Ticket::factory()
+            ->for($project)
+            ->for($status, 'status')
+            ->for($priority, 'priority')
+            ->create([
+                'created_by' => $admin->getKey(),
+            ]);
+
+        Livewire::test(EditTicket::class, ['record' => $ticket->getKey()])
+            ->callAction('delete')
+            ->assertNotified();
+
+        $this->assertDatabaseMissing('tickets', [
+            'id' => $ticket->getKey(),
+        ]);
+    }
 }

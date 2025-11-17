@@ -167,4 +167,94 @@ class TicketStatusManagementTest extends TestCase
             'id' => $status->getKey(),
         ]);
     }
+
+    public function test_non_project_member_cannot_create_ticket_status(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $nonMember = User::factory()->create();
+        $nonMember->assignRole('admin');
+
+        // Clear permission cache
+        $nonMember->load('roles.permissions');
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($nonMember);
+
+        $project = Project::factory()->create();
+        $project->members()->attach($admin);
+        // nonMember is NOT a project member
+
+        /** @var Project $project */
+        $project = Project::with('members')->findOrFail($project->getKey());
+
+        Livewire::test(TicketStatusesRelationManager::class, [
+            'ownerRecord' => $project,
+            'pageClass' => ViewProject::class,
+        ])
+            ->assertActionHidden(TestAction::make(CreateAction::class)->table());
+    }
+
+    public function test_non_project_member_cannot_edit_ticket_status(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $nonMember = User::factory()->create();
+        $nonMember->assignRole('admin');
+
+        // Clear permission cache
+        $nonMember->load('roles.permissions');
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($nonMember);
+
+        $project = Project::factory()->create();
+        $project->members()->attach($admin);
+
+        $status = TicketStatus::factory()
+            ->for($project)
+            ->create();
+
+        /** @var Project $project */
+        $project = Project::with('members')->findOrFail($project->getKey());
+
+        /** @var TicketStatus $status */
+        $status = TicketStatus::with('project.members')->findOrFail($status->getKey());
+
+        Livewire::test(TicketStatusesRelationManager::class, [
+            'ownerRecord' => $project,
+            'pageClass' => ViewProject::class,
+        ])
+            ->assertActionHidden(TestAction::make('edit')->table($status));
+    }
+
+    public function test_non_project_member_cannot_delete_ticket_status(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $nonMember = User::factory()->create();
+        $nonMember->assignRole('admin');
+
+        // Clear permission cache
+        $nonMember->load('roles.permissions');
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($nonMember);
+
+        $project = Project::factory()->create();
+        $project->members()->attach($admin);
+
+        $status = TicketStatus::factory()
+            ->for($project)
+            ->create();
+
+        /** @var Project $project */
+        $project = Project::with('members')->findOrFail($project->getKey());
+
+        /** @var TicketStatus $status */
+        $status = TicketStatus::with('project.members')->findOrFail($status->getKey());
+
+        Livewire::test(TicketStatusesRelationManager::class, [
+            'ownerRecord' => $project,
+            'pageClass' => ViewProject::class,
+        ])
+            ->assertActionHidden(TestAction::make('delete')->table($status));
+    }
 }

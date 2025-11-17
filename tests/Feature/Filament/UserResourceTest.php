@@ -108,4 +108,36 @@ class UserResourceTest extends TestCase
         $this->assertSame('jane.smith@example.com', $user->email);
         $this->assertSame($unit->getKey(), $user->unit_id);
     }
+
+    public function test_admin_can_view_user_details(): void
+    {
+        $this->actingAsRole('admin');
+
+        $user = User::factory()->create([
+            'name' => 'John Doe',
+            'email' => 'john.doe@example.com',
+        ]);
+
+        $this->get(route('filament.admin.resources.users.view', ['record' => $user->getKey()]))
+            ->assertOk();
+    }
+
+    public function test_admin_can_delete_user(): void
+    {
+        $this->actingAsRole('admin');
+
+        $user = User::factory()->create([
+            'name' => 'John Doe',
+            'email' => 'john.doe@example.com',
+        ]);
+
+        Livewire::test(EditUser::class, ['record' => $user->getKey()])
+            ->callAction('delete')
+            ->assertNotified();
+
+        // User uses SoftDeletes, so we need to check withTrashed
+        $this->assertSoftDeleted('users', [
+            'id' => $user->getKey(),
+        ]);
+    }
 }

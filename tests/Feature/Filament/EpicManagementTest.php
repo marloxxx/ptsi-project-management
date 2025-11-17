@@ -164,4 +164,94 @@ class EpicManagementTest extends TestCase
             'id' => $epic->getKey(),
         ]);
     }
+
+    public function test_non_project_member_cannot_create_epic(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $nonMember = User::factory()->create();
+        $nonMember->assignRole('admin');
+
+        // Clear permission cache
+        $nonMember->load('roles.permissions');
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($nonMember);
+
+        $project = Project::factory()->create();
+        $project->members()->attach($admin);
+        // nonMember is NOT a project member
+
+        /** @var Project $project */
+        $project = Project::with('members')->findOrFail($project->getKey());
+
+        Livewire::test(EpicsRelationManager::class, [
+            'ownerRecord' => $project,
+            'pageClass' => ViewProject::class,
+        ])
+            ->assertActionHidden(TestAction::make(CreateAction::class)->table());
+    }
+
+    public function test_non_project_member_cannot_edit_epic(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $nonMember = User::factory()->create();
+        $nonMember->assignRole('admin');
+
+        // Clear permission cache
+        $nonMember->load('roles.permissions');
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($nonMember);
+
+        $project = Project::factory()->create();
+        $project->members()->attach($admin);
+
+        $epic = Epic::factory()
+            ->for($project)
+            ->create();
+
+        /** @var Project $project */
+        $project = Project::with('members')->findOrFail($project->getKey());
+
+        /** @var Epic $epic */
+        $epic = Epic::with('project.members')->findOrFail($epic->getKey());
+
+        Livewire::test(EpicsRelationManager::class, [
+            'ownerRecord' => $project,
+            'pageClass' => ViewProject::class,
+        ])
+            ->assertActionHidden(TestAction::make('edit')->table($epic));
+    }
+
+    public function test_non_project_member_cannot_delete_epic(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $nonMember = User::factory()->create();
+        $nonMember->assignRole('admin');
+
+        // Clear permission cache
+        $nonMember->load('roles.permissions');
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($nonMember);
+
+        $project = Project::factory()->create();
+        $project->members()->attach($admin);
+
+        $epic = Epic::factory()
+            ->for($project)
+            ->create();
+
+        /** @var Project $project */
+        $project = Project::with('members')->findOrFail($project->getKey());
+
+        /** @var Epic $epic */
+        $epic = Epic::with('project.members')->findOrFail($epic->getKey());
+
+        Livewire::test(EpicsRelationManager::class, [
+            'ownerRecord' => $project,
+            'pageClass' => ViewProject::class,
+        ])
+            ->assertActionHidden(TestAction::make('delete')->table($epic));
+    }
 }

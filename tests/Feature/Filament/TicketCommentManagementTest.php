@@ -211,4 +211,144 @@ class TicketCommentManagementTest extends TestCase
             'id' => $comment->getKey(),
         ]);
     }
+
+    public function test_non_project_member_cannot_create_ticket_comment(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $nonMember = User::factory()->create();
+        $nonMember->assignRole('admin');
+
+        // Clear permission cache
+        $nonMember->load('roles.permissions');
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($nonMember);
+
+        $project = Project::factory()->create();
+        $project->members()->attach($admin);
+
+        $status = TicketStatus::factory()
+            ->for($project)
+            ->create();
+
+        $priority = TicketPriority::factory()->create();
+
+        $ticket = Ticket::factory()
+            ->for($project)
+            ->for($status, 'status')
+            ->for($priority, 'priority')
+            ->create([
+                'created_by' => $admin->getKey(),
+            ]);
+
+        // Get fresh ticket instance with project and members loaded
+        /** @var Ticket $ticket */
+        $ticket = Ticket::with('project.members')->findOrFail($ticket->getKey());
+
+        Livewire::test(TicketCommentsRelationManager::class, [
+            'ownerRecord' => $ticket,
+            'pageClass' => ViewTicket::class,
+        ])
+            ->assertActionHidden(TestAction::make(CreateAction::class)->table());
+    }
+
+    public function test_non_project_member_cannot_edit_ticket_comment(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $nonMember = User::factory()->create();
+        $nonMember->assignRole('admin');
+
+        // Clear permission cache
+        $nonMember->load('roles.permissions');
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($nonMember);
+
+        $project = Project::factory()->create();
+        $project->members()->attach($admin);
+
+        $status = TicketStatus::factory()
+            ->for($project)
+            ->create();
+
+        $priority = TicketPriority::factory()->create();
+
+        $ticket = Ticket::factory()
+            ->for($project)
+            ->for($status, 'status')
+            ->for($priority, 'priority')
+            ->create([
+                'created_by' => $admin->getKey(),
+            ]);
+
+        $comment = TicketComment::factory()
+            ->for($ticket)
+            ->create([
+                'user_id' => $admin->getKey(),
+            ]);
+
+        // Get fresh ticket instance with project and members loaded
+        /** @var Ticket $ticket */
+        $ticket = Ticket::with('project.members')->findOrFail($ticket->getKey());
+
+        // Get fresh comment instance with ticket and project loaded
+        /** @var TicketComment $comment */
+        $comment = TicketComment::with('ticket.project.members')->findOrFail($comment->getKey());
+
+        Livewire::test(TicketCommentsRelationManager::class, [
+            'ownerRecord' => $ticket,
+            'pageClass' => ViewTicket::class,
+        ])
+            ->assertActionHidden(TestAction::make('edit')->table($comment));
+    }
+
+    public function test_non_project_member_cannot_delete_ticket_comment(): void
+    {
+        $admin = $this->actingAsAdmin();
+        $nonMember = User::factory()->create();
+        $nonMember->assignRole('admin');
+
+        // Clear permission cache
+        $nonMember->load('roles.permissions');
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($nonMember);
+
+        $project = Project::factory()->create();
+        $project->members()->attach($admin);
+
+        $status = TicketStatus::factory()
+            ->for($project)
+            ->create();
+
+        $priority = TicketPriority::factory()->create();
+
+        $ticket = Ticket::factory()
+            ->for($project)
+            ->for($status, 'status')
+            ->for($priority, 'priority')
+            ->create([
+                'created_by' => $admin->getKey(),
+            ]);
+
+        $comment = TicketComment::factory()
+            ->for($ticket)
+            ->create([
+                'user_id' => $admin->getKey(),
+            ]);
+
+        // Get fresh ticket instance with project and members loaded
+        /** @var Ticket $ticket */
+        $ticket = Ticket::with('project.members')->findOrFail($ticket->getKey());
+
+        // Get fresh comment instance with ticket and project loaded
+        /** @var TicketComment $comment */
+        $comment = TicketComment::with('ticket.project.members')->findOrFail($comment->getKey());
+
+        Livewire::test(TicketCommentsRelationManager::class, [
+            'ownerRecord' => $ticket,
+            'pageClass' => ViewTicket::class,
+        ])
+            ->assertActionHidden(TestAction::make('delete')->table($comment));
+    }
 }
