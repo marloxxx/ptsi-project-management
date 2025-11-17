@@ -271,7 +271,15 @@ Acceptance Criteria:
 5. ✅ Create Filament UI for managing issue types, sub-tasks, and dependencies.
 6. ✅ Tests covering parent-child relationships and dependency constraints.
 
-### 🚧 Phase 4: Custom Fields per Project (PENDING)
+### ✅ Phase 4: Custom Fields per Project (COMPLETED)
+1. ✅ Add `project_custom_fields` and `ticket_custom_values` tables.
+2. ✅ Create `ProjectCustomField` and `TicketCustomValue` models with relationships.
+3. ✅ Implement dynamic form schema generation and validation.
+4. ✅ Create Filament UI for managing custom fields per project.
+5. ✅ Integrate custom fields into ticket form and table.
+6. ✅ Tests covering field creation, value persistence, and filtering.
+
+### 🚧 Phase 6: Saved Filters & Global Search (IN PROGRESS)
 
 All changes will follow existing conventions in `app/Application/Services`, `app/Domain/Services`, `app/Infrastructure`, `app/Filament`, and Policies, with thorough tests under `tests/Feature` and `tests/Unit`.
 
