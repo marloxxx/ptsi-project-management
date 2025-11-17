@@ -31,8 +31,15 @@ class EditTicket extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         if ($this->record instanceof Ticket) {
-            $this->record->loadMissing('assignees');
+            $this->record->loadMissing(['assignees', 'customValues.customField']);
             $data['assignee_ids'] = $this->record->assignees->pluck('id')->map(fn ($id): int => (int) $id)->all();
+
+            // Load custom field values
+            $customFields = [];
+            foreach ($this->record->customValues as $customValue) {
+                $customFields[$customValue->custom_field_id] = $customValue->value;
+            }
+            $data['custom_fields'] = $customFields;
         }
 
         return $data;
