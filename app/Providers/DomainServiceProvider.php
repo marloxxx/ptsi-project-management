@@ -101,7 +101,7 @@ class DomainServiceProvider extends ServiceProvider
             \App\Domain\Repositories\SavedFilterRepositoryInterface::class,
             \App\Infrastructure\Repositories\SavedFilterRepository::class
         );
-      
+
         $this->app->bind(
             \App\Domain\Services\GlobalSearchServiceInterface::class,
             \App\Application\Services\GlobalSearchService::class
@@ -110,6 +110,11 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Domain\Repositories\TicketCustomValueRepositoryInterface::class,
             \App\Infrastructure\Repositories\TicketCustomValueRepository::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Repositories\ProjectCustomFieldRepositoryInterface::class,
+            \App\Infrastructure\Repositories\ProjectCustomFieldRepository::class
         );
 
         // Register Service bindings
@@ -181,6 +186,11 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Domain\Services\GlobalSearchServiceInterface::class,
             \App\Application\Services\GlobalSearchService::class
+        );
+
+        $this->app->bind(
+            \App\Domain\Services\CustomFieldServiceInterface::class,
+            \App\Application\Services\CustomFieldService::class
         );
     }
 
