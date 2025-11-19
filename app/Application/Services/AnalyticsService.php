@@ -142,4 +142,29 @@ class AnalyticsService implements AnalyticsServiceInterface
     {
         return $this->analyticsRepository->recentActivityQuery($user);
     }
+
+    public function getCumulativeFlowDiagram(int $projectId, int $days = 30): array
+    {
+        return $this->analyticsRepository->getCumulativeFlowDiagram($projectId, $days);
+    }
+
+    public function getLeadCycleTime(int $projectId, int $days = 30): array
+    {
+        return $this->analyticsRepository->getLeadCycleTime($projectId, $days);
+    }
+
+    public function getThroughput(int $projectId, int $days = 30): array
+    {
+        return $this->analyticsRepository->getThroughput($projectId, $days);
+    }
+
+    public function getProjectBurndown(int $projectId, int $days = 30): array
+    {
+        return $this->analyticsRepository->getProjectBurndown($projectId, $days);
+    }
+
+    public function getProjectVelocity(int $projectId, int $periods = 8): array
+    {
+        return $this->analyticsRepository->getProjectVelocity($projectId, $periods);
+    }
 }

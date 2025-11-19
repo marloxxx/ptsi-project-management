@@ -68,29 +68,35 @@ class RoleResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return self::currentUser()?->can('roles.view') ?? false;
+        return self::currentUser()?->can('viewAny', Role::class) ?? false;
     }
 
     public static function canCreate(): bool
     {
-        return self::currentUser()?->can('roles.create') ?? false;
+        return self::currentUser()?->can('create', Role::class) ?? false;
     }
 
     public static function canEdit(Model $record): bool
     {
-        /** @var Role $record */
+        if (! $record instanceof Role) {
+            return false;
+        }
+
         return self::currentUser()?->can('update', $record) ?? false;
     }
 
     public static function canDelete(Model $record): bool
     {
-        /** @var Role $record */
+        if (! $record instanceof Role) {
+            return false;
+        }
+
         return self::currentUser()?->can('delete', $record) ?? false;
     }
 
     public static function canDeleteAny(): bool
     {
-        return self::currentUser()?->can('roles.delete') ?? false;
+        return self::currentUser()?->can('delete', Role::class) ?? false;
     }
 
     public static function getNavigationLabel(): string

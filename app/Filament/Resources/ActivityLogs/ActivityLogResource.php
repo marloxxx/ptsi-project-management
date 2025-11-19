@@ -63,7 +63,7 @@ class ActivityLogResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return self::currentUser()?->can('audit-logs.view') ?? false;
+        return self::currentUser()?->can('viewAny', Activity::class) ?? false;
     }
 
     public static function canView(Model $record): bool

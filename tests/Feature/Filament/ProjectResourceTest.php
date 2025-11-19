@@ -115,4 +115,35 @@ class ProjectResourceTest extends TestCase
         $this->assertTrue($project->members->contains('id', $member->getKey()));
         $this->assertFalse($project->members->contains('id', $admin->getKey()));
     }
+
+    public function test_admin_can_view_project_details(): void
+    {
+        $this->actingAsRole('admin');
+
+        $project = Project::factory()->create([
+            'name' => 'Test Project',
+            'ticket_prefix' => 'TEST',
+        ]);
+
+        $this->get(route('filament.admin.resources.projects.view', ['record' => $project->getKey()]))
+            ->assertOk();
+    }
+
+    public function test_admin_can_delete_project(): void
+    {
+        $this->actingAsRole('admin');
+
+        $project = Project::factory()->create([
+            'name' => 'Test Project',
+            'ticket_prefix' => 'TEST',
+        ]);
+
+        Livewire::test(EditProject::class, ['record' => $project->getKey()])
+            ->callAction('delete')
+            ->assertNotified();
+
+        $this->assertDatabaseMissing('projects', [
+            'id' => $project->getKey(),
+        ]);
+    }
 }

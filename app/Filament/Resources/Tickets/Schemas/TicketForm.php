@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Tickets\Schemas;
 
+use App\Domain\Services\CustomFieldServiceInterface;
 use App\Models\Epic;
 use App\Models\Project;
+use App\Models\Ticket;
 use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use App\Models\User;
@@ -113,6 +115,44 @@ class TicketForm
                                         'xl' => 3,
                                     ])
                                     ->placeholder('Enter a descriptive title for this ticket'),
+
+                                Select::make('issue_type')
+                                    ->label('Issue Type')
+                                    ->required()
+                                    ->default('Task')
+                                    ->options([
+                                        'Bug' => 'Bug',
+                                        'Task' => 'Task',
+                                        'Story' => 'Story',
+                                        'Epic' => 'Epic',
+                                    ])
+                                    ->helperText('Type of issue this ticket represents.'),
+
+                                Select::make('parent_id')
+                                    ->label('Parent Ticket')
+                                    ->searchable()
+                                    ->preload()
+                                    ->options(function (callable $get): array {
+                                        $projectId = $get('project_id');
+                                        $currentTicketId = $get('id');
+
+                                        if (! $projectId) {
+                                            return [];
+                                        }
+
+                                        $query = \App\Models\Ticket::query()
+                                            ->where('project_id', $projectId)
+                                            ->orderBy('name');
+
+                                        // Exclude current ticket to prevent self-reference
+                                        if ($currentTicketId) {
+                                            $query->where('id', '!=', $currentTicketId);
+                                        }
+
+                                        return $query->pluck('name', 'id')->toArray();
+                                    })
+                                    ->nullable()
+                                    ->helperText('Optional parent ticket for sub-tasks.'),
                             ]),
                     ])
                     ->columnSpanFull(),
@@ -174,6 +214,30 @@ class TicketForm
                                 'sm' => 1,
                             ]),
                     ])
+                    ->columnSpanFull(),
+
+                Section::make('Custom Fields')
+                    ->icon(Heroicon::OutlinedCog6Tooth)
+                    ->schema(function (callable $get, ?Ticket $record, CustomFieldServiceInterface $customFieldService): array {
+                        $projectId = $get('project_id') ?? $record?->project_id;
+
+                        if (! $projectId) {
+                            return [];
+                        }
+
+                        return $customFieldService->generateFormSchemaForProject((int) $projectId);
+                    })
+                    ->visible(function (callable $get, ?Ticket $record, CustomFieldServiceInterface $customFieldService): bool {
+                        $projectId = $get('project_id') ?? $record?->project_id;
+
+                        if (! $projectId) {
+                            return false;
+                        }
+
+                        $fields = $customFieldService->getActiveFieldsForProject((int) $projectId);
+
+                        return $fields->isNotEmpty();
+                    })
                     ->columnSpanFull(),
             ]);
     }

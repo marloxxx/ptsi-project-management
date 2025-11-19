@@ -198,6 +198,99 @@ class AnalyticsServiceTest extends TestCase
         $this->assertSame([$accessibleTicket->getKey()], $results);
     }
 
+    public function test_get_cumulative_flow_diagram(): void
+    {
+        $project = Project::factory()->create();
+        $status1 = TicketStatus::factory()->for($project)->create(['sort_order' => 1]);
+        $status2 = TicketStatus::factory()->for($project)->create(['sort_order' => 2, 'is_completed' => true]);
+
+        Ticket::factory()->for($project)->create([
+            'ticket_status_id' => $status1->getKey(),
+            'created_at' => Carbon::now()->subDays(5),
+        ]);
+
+        $result = $this->analyticsService->getCumulativeFlowDiagram($project->id, 30);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('labels', $result);
+        $this->assertArrayHasKey('datasets', $result);
+    }
+
+    public function test_get_lead_cycle_time(): void
+    {
+        $project = Project::factory()->create();
+        $completedStatus = TicketStatus::factory()->for($project)->create(['is_completed' => true]);
+
+        $ticket = Ticket::factory()->for($project)->create([
+            'ticket_status_id' => $completedStatus->getKey(),
+            'created_at' => Carbon::now()->subDays(10),
+            'updated_at' => Carbon::now()->subDays(5),
+        ]);
+
+        $result = $this->analyticsService->getLeadCycleTime($project->id, 30);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('lead_time', $result);
+        $this->assertArrayHasKey('cycle_time', $result);
+        $this->assertArrayHasKey('chart_data', $result);
+    }
+
+    public function test_get_throughput(): void
+    {
+        $project = Project::factory()->create();
+        $completedStatus = TicketStatus::factory()->for($project)->create(['is_completed' => true]);
+
+        Ticket::factory()->for($project)->create([
+            'ticket_status_id' => $completedStatus->getKey(),
+            'updated_at' => Carbon::now()->subDays(1),
+        ]);
+
+        $result = $this->analyticsService->getThroughput($project->id, 30);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('labels', $result);
+        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('avg_per_day', $result);
+        $this->assertArrayHasKey('total', $result);
+    }
+
+    public function test_get_project_burndown(): void
+    {
+        $project = Project::factory()->create();
+        $completedStatus = TicketStatus::factory()->for($project)->create(['is_completed' => true]);
+
+        Ticket::factory()->for($project)->count(5)->create([
+            'created_at' => Carbon::now()->subDays(10),
+        ]);
+
+        $result = $this->analyticsService->getProjectBurndown($project->id, 30);
+
+        $this->assertIsArray($result);
+        if (! empty($result)) {
+            $this->assertArrayHasKey('date', $result[0]);
+            $this->assertArrayHasKey('remaining', $result[0]);
+            $this->assertArrayHasKey('ideal', $result[0]);
+        }
+    }
+
+    public function test_get_project_velocity(): void
+    {
+        $project = Project::factory()->create();
+        $completedStatus = TicketStatus::factory()->for($project)->create(['is_completed' => true]);
+
+        Ticket::factory()->for($project)->count(3)->create([
+            'ticket_status_id' => $completedStatus->getKey(),
+            'updated_at' => Carbon::now()->subDays(1),
+        ]);
+
+        $result = $this->analyticsService->getProjectVelocity($project->id, 8);
+
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('labels', $result);
+        $this->assertArrayHasKey('data', $result);
+        $this->assertArrayHasKey('avg_velocity', $result);
+    }
+
     /**
      * @param  array<int, array{label: string, value: int, description?: string, icon?: string, color?: string}>  $stats
      * @return Collection<string, array{label: string, value: int, description?: string, icon?: string, color?: string}>

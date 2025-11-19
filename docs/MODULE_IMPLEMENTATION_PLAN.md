@@ -1,124 +1,308 @@
-# PTSI Project Management – Module Implementation Plan
+## PTSI Module Implementation Plan (Internal-Only)
 
-## Overview
-This plan tracks how features from the DewaKoding Project Management system will be integrated into the PTSI Laravel starter kit baseline. Each module includes objectives, required dependencies, data structures, service-layer work, UI work, and testing notes.
+This plan aligns the existing application with PTSI’s internal, private project management needs while keeping parity with modern tools (Jira-like) where valuable. It builds on current code (Laravel 12, Filament 4, Livewire 3) and the layered architecture already in use (Domain → Application → Infrastructure → Interface).
 
-## Phase 0 – Foundation
-- [x] Align composer dependencies (Excel, Octane, tab layout plugin) with starter kit baselines
-- [x] Configure environment variables (.env.example) for branding and timezone defaults
-- [ ] Migrate Docker/Vite configuration deltas if needed
+### 1) Principles & Constraints (PTSI-Internal)
+- Privacy-first: no public endpoints or data exposure; external access is explicitly whitelisted and auditable.
+- Least-privilege RBAC: policies and per-project roles govern every action.
+- Auditability by default: every state change is recorded and attributable.
+- Performance at scale: use eager loading, indexing, caching on analytics, and queues for heavy work.
+- Zero `env()` in code; use config and settings; follow existing architecture and naming conventions.
+- Tests for all meaningful changes (feature + unit), formatted with Pint.
 
-## Module Plans
+### 2) Current State (High-Level)
+- Core entities: `Project`, `Ticket`, `TicketStatus`, `Epic`, `ProjectNote`, `User` (with permissions), `TicketHistory`, `TicketComment`, priorities/statuses, exports/imports.
+- Filament: Project Resource, Tickets Resource, Board page (`ProjectBoard`), Epics page, dashboard/widgets.
+- Notifications: project member assigned/removed, ticket comment added/updated.
+- External: `ExternalAccessToken` + basic external Livewire pages (login/dashboard).
+- Gaps vs Jira-like: no Sprint entity; no burndown/velocity/CFD; limited automations; limited saved filters/global search; no formal SLA/escalation; custom fields not per-project; no dependency graph/Gantt; reporting is basic.
 
-### 1. Core Domain & Settings
-- **Objectives**
-  - Scaffold database structures for projects, epics, tickets, priorities, statuses, notifications, and external access tokens.
-  - Port system configuration/settings into PTSI Settings module.
-- **Schema Snapshot**
-  - `projects`: name, description, ticket_prefix (unique), color (hex), start_date, end_date, pinned_at, timestamps, indexes on `ticket_prefix`, date ranges, and `pinned_at`.
-  - `project_members`: project/user pivot with timestamps and unique pairing; secondary indexes on `project_id` and `user_id`.
-  - `project_notes`: project reference, author (`created_by`), title, long-form content, note_date, timestamps.
-  - `ticket_statuses`: project reference, name, color, `is_completed`, `sort_order`, timestamps, composite index on `(project_id, sort_order)`.
-  - `ticket_priorities`: global catalog with name, color, optional `sort_order`, timestamps.
-  - `tickets`: project, status, priority, epic, creator, UUID, name, long description, `start_date`, `due_date`, timestamps, indexes supporting board filters (`project_id`, `ticket_status_id`, `priority_id`, `due_date`).
-  - `ticket_users`: assignment pivot with timestamps, unique `(ticket_id, user_id)` plus supporting indexes.
-  - `ticket_histories`: ticket, user, status transition snapshot, timestamps.
-  - `ticket_comments`: ticket, user, long comment body, timestamps.
-  - `epics`: project, name, description, `start_date`, `end_date`, `sort_order`, timestamps.
-  - `external_access_tokens`: project reference, access_token, password hash, `is_active`, `last_accessed_at`, timestamps.
-- **Tasks**
-  - [x] Recreate migrations using clean architecture folder conventions.
-  - [x] Implement repositories/services under `Domain` and `Application` namespaces.
-  - [x] Seed base data (ticket priorities, default project status presets).
-- **Testing**
-  - [x] Feature tests covering project/ticket services (default statuses, external access, history & comments).
+### 3) Roadmap (Phased, Safe-by-Default)
+1. Sprints & Board integration (drag-and-drop by sprint; burndown/velocity).
+2. Workflow transitions per project (guarded by policy).
+3. Issue types, sub-tasks, and dependencies.
+4. Custom fields per project (schema + values).
+5. Automations (internal only; Slack/Teams optional via outbound webhook to PTSI infra).
+6. Saved filters & global search (internal).
+7. Reporting & Analytics (CFD, lead/cycle time, throughput).
+8. Service Desk (internal restricted or token-based guest with strict rate limits).
+9. Public API (internal tokens only; IP allowlist) & webhooks.
+10. SLA + escalation.
 
-### 2. User & Access Management
-- **Objectives**
-  - Consolidate authentication flows around Laravel’s native login and Spatie Permission powered authorization.
-  - Ensure PTSI branding, MFA, and impersonation support remain functional within Filament.
-- **Spatie Permission Alignment**
-  - Existing guard `web` with seeded roles: `super_admin`, `admin`, `manager`, `staff`.
-  - Base permissions already provided via `RbacSeeder` cover `users.*`, `roles.*`, `units.*`, `audit-logs.view`, `reports.*`, and `approvals.*`.
-  - Maintain the current permission matrix while hardening policy coverage and usage across Filament resources.
-- **Tasks**
-  - [x] Audit `RbacSeeder` to confirm permissions stay in sync with domain requirements and update descriptive labels/documentation if needed.
-  - [x] Review Filament resources and pages to confirm all actions leverage `can()` checks that map directly to Spatie permissions.
-  - [x] Implement application services or policies required to centralize role/permission management, ensuring controllers/resources remain thin.
-  - [x] Provide administrative tooling within Filament (forms, tables, actions) to manage users and roles exclusively via Spatie Permission.
-  - [x] Document MFA enablement/reset procedures in line with Spatie roles.
-  - [x] Create super admin provisioning command/seed if necessary, granting all permissions defined in the current matrix (handled via Filament user management and seeder coverage).
-- **Testing**
-  - [x] Authentication tests (local login, MFA availability) asserting permission gates for each role.
-  - [x] Feature tests covering permission seeding and access control for Filament panels that rely on Spatie Permission.
-  - [x] Policy tests ensuring role-based access rules are enforced for sensitive operations.
+Each phase ships with migrations, services, policies, Filament UI, and tests. No destructive migrations; always reversible.
 
-### 3. Project & Epic Management
-- **Objectives**
-  - Provide CRUD interfaces for projects and epics with custom fields (ticket prefix, timelines, team members).
-- **Tasks**
-  - [x] Build repositories/services for Projects & Epics, including assignment logic.
-  - [x] Create Filament Resources with forms and table schemas.
-  - [x] Implement project notes and audit logging via starter kit activity log.
-- **Testing**
-  - [x] Filament resource tests for create/edit/list flows.
+---
 
-### 4. Ticket Lifecycle
-- **Objectives**
-  - Manage tickets, priorities, statuses, history, and multi-assignee workflow.
-- **Tasks**
-  - [x] Implement ticket service (creation, assignment, status transitions, history entries).
-  - [x] Port comments Livewire component and integrate with Filament relation managers.
-  - [x] Configure exports/imports (Excel) and unique ticket identifier generator.
-- **Testing**
-  - [x] Feature tests for ticket creation, assignment, status updates, and history tracking.
-  - [x] Tests for Excel import/export commands.
+## Module Specifications
 
-### 5. Boards & Timeline Views
-- **Objectives**
-  - Deliver Kanban board and timeline visualization inside Filament.
-- **Tasks**
-  - [x] Rebuild board page leveraging Filament page architecture and tab layout plugin.
-  - [x] Implement timeline chart widgets and ensure data aggregation services exist.
-  - [x] Optimize queries for large datasets (eager loading, caching where needed).
-- **Testing**
-  - [x] Livewire/Filament tests covering board interactions and timeline rendering responses.
+### A) Sprints & Board
 
-### 6. Analytics & Dashboards
-- **Objectives**
-  - Port leaderboard, stats overview, project status charts, and user contribution widgets.
-- **Tasks**
-  - [x] Implement dedicated Application services for aggregations.
-  - [x] Create Filament widgets/dashboard sections with PTSI theming.
-- **Testing**
-  - [x] Widget feature tests verifying metric counts and chart datasets.
+Scope:
+- Add `Sprint` entity scoped to `Project` with dates, goal, and state (Planned, Active, Closed).
+- Assign tickets to sprints; filter board by sprint; allow drag-and-drop between statuses within the selected sprint.
+- Add burndown and velocity widgets per sprint/project.
 
-### 7. Notifications & External Portal
-- **Objectives**
-  - Restore email notifications, queue processing, and external client dashboard.
-- **Tasks**
-  - [x] Port mail templates and notification dispatch logic to starter kit services.
-  - [x] Configure queue worker documentation and Supervisor sample under PTSI ops.
-  - [x] Integrate `ExternalLogin` and `ExternalDashboard` Livewire components with PTSI layouts.
-- **Testing**
-  - [x] Notification tests (queue dispatch assertions) and external portal route/component tests.
+Data Model:
+- `sprints`:
+  - id, project_id (FK, indexed), name, goal, state enum, start_date, end_date, closed_at, created_by, timestamps.
+- `tickets`: add nullable `sprint_id` (FK) with index.
 
-### 8. Documentation & Dev Experience
-- **Objectives**
-  - Update docs to reflect PTSI ownership and new setup steps.
-- **Tasks**
-  - [x] Align README, Quick Start, dan architecture/docs dev workflow dengan modul baru.
-  - [x] Provide deployment checklist (queues, OAuth, Octane optional).
-  - [ ] Add change log entries summarizing migration dari Dewakoding base.
+Domain & Application:
+- Services: `SprintServiceInterface` + `SprintService` (create/update/close/reopen, assign tickets, compute metrics).
+- Board integration via `TicketBoardServiceInterface`: add sprint scoping.
 
-## Tracking & Milestones
-- Milestone 1: Foundation + Core Domain completed and tested.
-- Milestone 2: Project/Epic + Ticket lifecycle operational with Filament resources.
-- Milestone 3: Boards, analytics, and external portal delivered.
-- Milestone 4: Notifications, docs, and final QA.
+Policies:
+- Only project members with role `Maintainer|Admin` can create/activate/close sprint; contributors can assign tickets they own or are allowed to move.
 
-## Open Questions
-- Do we need additional PTSI-specific compliance checks (audit logging, data retention)? **Yes**
-- Should external portal support multi-tenant branding per client? **Yes**
-- Confirm preferred default roles/permissions mapping between Dewakoding and PTSI hierarchy. **Yes**
+Filament UI:
+- Project → View: Sprints relation manager (list/create/edit/close).
+- Board page: Sprint selector; drag-and-drop scoped to sprint; quick-assign sprint from card menu.
+- Widgets: Sprint Burndown, Sprint Velocity; Project dashboard shows current sprint metrics if any.
+
+Reporting:
+- Burndown dataset from remaining story points or ticket count; velocity from completed points per sprint.
+
+Tests (Feature + Unit):
+- Create/activate/close sprint; assign ticket to sprint; board filtering; burndown calculation; velocity stability across sprints; policy enforcement.
+
+Acceptance Criteria:
+- Can create and activate one active sprint per project.
+- Board shows tickets filtered by sprint quickly (<300ms server time for typical project sizes).
+- Burndown/velocity widgets render correct datasets for the selected sprint.
+
+
+### B) Workflow Transitions per Project
+
+Scope:
+- Configurable status transitions per project; enforce guards via policy (role/ownership/conditions).
+
+Data Model:
+- `project_workflows` (project_id, definition JSON for allowed transitions).
+
+Application:
+- `TicketService::transitionStatus()` validates transition against workflow + policy; records `TicketHistory` entry.
+
+Filament:
+- Project settings tab to edit allowed transitions with a simple matrix UI.
+
+Tests:
+- Transition allowed/denied paths; history entries; policy rules.
+
+Acceptance Criteria:
+- Illegal transitions are blocked with clear feedback; all transitions are audited.
+
+
+### C) Issue Types, Sub-Tasks, Dependencies
+
+Scope:
+- Add `issue_type` (Bug/Task/Story/Epic link), parent-child sub-tasks, and dependency graph (blocks/relates).
+
+Data Model:
+- `tickets`: enum/string `issue_type`, `parent_id` nullable (self FK, indexed).
+- `ticket_dependencies`: (ticket_id, depends_on_ticket_id, type enum: blocks/relates).
+
+Filament:
+- Ticket form fields for issue type, parent, dependencies; table columns; quick actions.
+
+Tests:
+- Parent-child visibility; dependency constraints (prevent closing a ticket if blocked unless override permitted).
+
+Acceptance Criteria:
+- Sub-tasks and dependencies visible on ticket view; basic protections enforced.
+
+
+### D) Custom Fields per Project
+
+Scope:
+- Admin project dapat menambah custom fields (text/number/select/date) dan mengatur tampilannya di form/tabel.
+
+Data Model:
+- `project_custom_fields`: (project_id, key, label, type, options JSON, required, order, active).
+- `ticket_custom_values`: (ticket_id, custom_field_id, value JSON).
+
+Application:
+- Dynamic form schema generation; casting/validation from field type; indexing strategy for searchable fields (select/number/date).
+
+Tests:
+- Create fields; fill and persist; filter/sort by custom field where applicable.
+
+Acceptance Criteria:
+- Non-breaking dynamic fields integrated in ticket form and can be exported.
+
+
+### E) Automations (Internal-Only)
+
+Scope:
+- Declarative rules: on create/update/comment → actions (set field, reassign, change status, add label, post Slack).
+
+Data Model:
+- `automation_rules`: (project_id, event, conditions JSON, actions JSON, active).
+
+Runtime:
+- Listeners/Jobs execute actions; retries on transient errors; idempotency keys per event.
+
+Security:
+- Outbound webhooks restricted to PTSI endpoints; secrets in config/settings; thoroughly logged.
+
+Tests:
+- Condition matching; action execution; policy interaction; webhook signing.
+
+Acceptance Criteria:
+- Rules execute reliably with audit logs; failure paths are visible and retryable.
+
+
+### F) Saved Filters & Global Search
+
+Scope:
+- Saved filters (per user/team/project) + shareable; global search across tickets/comments with permissions.
+
+Data Model:
+- `saved_filters`: (owner_type, owner_id, name, query JSON, visibility).
+
+Search:
+- Start with optimized DB queries + indexes; optionally integrate Scout/Meilisearch later (internal).
+
+Tests:
+- Save/share filter; apply on board/table; permission checks; search relevance sanity.
+
+Acceptance Criteria:
+- Users can quickly recall and share powerful views without performance degradation.
+
+
+### G) Reporting & Analytics
+
+Scope:
+- Burndown, Velocity, Cumulative Flow Diagram, Lead/Cycle time, Throughput.
+
+Implementation:
+- Application services generate datasets with caching; Filament widgets/charts render views.
+
+Tests:
+- Dataset correctness against seeded fixtures; cache invalidation on updates.
+
+Acceptance Criteria:
+- Charts render in <250ms cached; data correctness validated by tests.
+
+
+### H) SLA & Escalation (Internal)
+
+Scope:
+- SLA targets per priority/project; breach detection; escalation notifications; pause on “waiting for customer”.
+
+Data Model:
+- `sla_policies`: (project_id, priority_id, response_mins, resolve_mins, pause_on_statuses JSON).
+
+Runtime:
+- Scheduler job evaluates breaches; sends internal notifications and optional reassignments.
+
+Tests:
+- Breach detection; pausing logic; notifications.
+
+Acceptance Criteria:
+- Breaches are detected/persisted; alerting/escalation flows are traceable.
+
+
+### I) Service Desk (Restricted)
+
+Scope:
+- Optional internal/customer portal with token-based limited access; no public indexing; strict rate limits and expiry.
+
+Security:
+- All actions gated; audit for every request; file visibility remains private.
+
+Acceptance Criteria:
+- External visibility never exceeds explicit grants; rate limits enforced.
+
+
+---
+
+## Cross-Cutting Concerns
+
+- Authorization: Strengthen Policies per entity; project-role pivot; always check in Actions/Services.
+- Audit: Extend `TicketHistory` coverage (custom fields, dependencies, workflow, automation effects).
+- Performance: Eager load on Filament tables/board; add missing DB indexes; cache analytics.
+- Migrations: Reversible; preserve existing attrs; backfill nullable columns safely; no data loss.
+- Testing: PHPUnit feature tests for Filament pages/actions, Livewire components; unit tests for services; use factories/states.
+- Formatting: Run `vendor/bin/pint --dirty` and fix lints before merging.
+
+---
+
+## Deliverables per Phase
+
+- Migrations + Models (with casts(), relationships, indexes).
+- Domain Contracts + Application Services (interfaces + implementations).
+- Policies + Gates.
+- Filament Resources/Pages/Widgets with eager loading and relationship fields.
+- Notifications (where applicable).
+- Feature + Unit Tests with realistic factories.
+
+---
+
+## Rollout & Change Management
+
+1) Dev: implement + tests pass; Pint clean.
+2) Staging: seed demo data; verify migrations; UAT checks on permissions and audit.
+3) Production: timed deployment window; backup DB; run migrations; warm caches for analytics.
+4) Post-deploy: monitor logs and performance; toggle feature flags as needed.
+
+---
+
+## Phase Status
+
+### ✅ Phase 1: Sprints & Board Integration (COMPLETED)
+1. ✅ Add `sprints` table + `tickets.sprint_id` (nullable) with indexes.
+2. ✅ Implement `SprintServiceInterface` + `SprintService` (activate/close, assign tickets, metrics).
+3. ✅ Board page: add sprint selector and sprint-scoped drag-and-drop.
+4. ✅ Add Sprint Burndown and Velocity widgets in Project View/Dashboard.
+5. ✅ Tests covering sprint lifecycle, board filtering, metrics, and authorization.
+
+### ✅ Phase 2: Workflow Transitions per Project (COMPLETED)
+1. ✅ Add `project_workflows` table with JSON definition for allowed transitions.
+2. ✅ Create `ProjectWorkflow` model and repository.
+3. ✅ Update `TicketService::changeStatus()` to validate transitions against workflow + policy.
+4. ✅ Create Filament UI for editing workflow transitions in Project settings.
+5. ✅ Tests covering transition validation (allowed/denied paths), history entries, and policy rules.
+
+1. ✅ Add `issue_type` field to tickets table.
+2. ✅ Add `parent_id` nullable FK for sub-tasks.
+3. ✅ Create `ticket_dependencies` table for dependency graph.
+4. ✅ Update TicketService to handle parent-child relationships and dependencies.
+5. ✅ Create Filament UI for managing issue types, sub-tasks, and dependencies.
+6. ✅ Tests covering parent-child relationships and dependency constraints.
+
+### ✅ Phase 4: Custom Fields per Project (COMPLETED)
+1. ✅ Add `project_custom_fields` and `ticket_custom_values` tables.
+2. ✅ Create `ProjectCustomField` and `TicketCustomValue` models with relationships.
+3. ✅ Implement dynamic form schema generation and validation.
+4. ✅ Create Filament UI for managing custom fields per project.
+5. ✅ Integrate custom fields into ticket form and table.
+6. ✅ Tests covering field creation, value persistence, and filtering.
+
+### ✅ Phase 6: Saved Filters & Global Search (COMPLETED)
+1. ✅ Add `saved_filters` table with polymorphic owner, visibility, and project scoping.
+2. ✅ Create `SavedFilter` model with relationships and casts.
+3. ✅ Implement `SavedFilterRepositoryInterface` + `SavedFilterRepository` with owner and accessibility queries.
+4. ✅ Implement `SavedFilterServiceInterface` + `SavedFilterService` (create/update/delete, get filter query).
+5. ✅ Create `SavedFilterPolicy` for authorization based on ownership and visibility.
+6. ✅ Implement `GlobalSearchServiceInterface` + `GlobalSearchService` for ticket/comment search with permissions.
+7. ✅ Create Filament Resource for managing saved filters (CRUD UI).
+8. ✅ Tests covering saved filter lifecycle, visibility rules, and search functionality.
+
+### ✅ Phase 7: Reporting & Analytics (COMPLETED)
+1. ✅ Extend `AnalyticsServiceInterface` and `AnalyticsRepositoryInterface` with new methods for reporting.
+2. ✅ Implement `getCumulativeFlowDiagram()` - tracks work in progress across statuses over time.
+3. ✅ Implement `getLeadCycleTime()` - calculates lead time (creation to completion) and cycle time (in-progress to completion).
+4. ✅ Implement `getThroughput()` - measures tickets completed per day with average and total metrics.
+5. ✅ Implement `getProjectBurndown()` - project-level burndown chart showing remaining work over time.
+6. ✅ Implement `getProjectVelocity()` - tracks completed tickets per week with average velocity calculation.
+7. ✅ Create `CumulativeFlowDiagramWidget` - Filament widget for CFD visualization.
+8. ✅ Create `LeadCycleTimeWidget` - Filament widget for lead/cycle time metrics and charts.
+9. ✅ Create `ThroughputWidget` - Filament widget for throughput visualization.
+10. ✅ Create `ProjectBurndownWidget` - Filament widget for project burndown chart.
+11. ✅ Create `ProjectVelocityWidget` - Filament widget for project velocity tracking.
+12. ✅ All analytics methods include caching (5-10 minutes TTL) for performance optimization.
+13. ✅ Tests covering all new analytics methods with proper data validation.
+
+All changes will follow existing conventions in `app/Application/Services`, `app/Domain/Services`, `app/Infrastructure`, `app/Filament`, and Policies, with thorough tests under `tests/Feature` and `tests/Unit`.
+
 

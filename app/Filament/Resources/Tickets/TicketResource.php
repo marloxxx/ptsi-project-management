@@ -9,6 +9,7 @@ use App\Filament\Resources\Tickets\Pages\EditTicket;
 use App\Filament\Resources\Tickets\Pages\ListTickets;
 use App\Filament\Resources\Tickets\Pages\ViewTicket;
 use App\Filament\Resources\Tickets\RelationManagers\TicketCommentsRelationManager;
+use App\Filament\Resources\Tickets\RelationManagers\TicketHistoryRelationManager;
 use App\Filament\Resources\Tickets\Schemas\TicketForm;
 use App\Filament\Resources\Tickets\Schemas\TicketInfolist;
 use App\Filament\Resources\Tickets\Tables\TicketsTable;
@@ -58,7 +59,10 @@ class TicketResource extends Resource
 
     public static function getRelations(): array
     {
-        return [TicketCommentsRelationManager::class];
+        return [
+            TicketCommentsRelationManager::class,
+            TicketHistoryRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
@@ -78,12 +82,12 @@ class TicketResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return self::currentUser()?->can('tickets.view') ?? false;
+        return self::currentUser()?->can('viewAny', Ticket::class) ?? false;
     }
 
     public static function canCreate(): bool
     {
-        return self::currentUser()?->can('tickets.create') ?? false;
+        return self::currentUser()?->can('create', Ticket::class) ?? false;
     }
 
     public static function canEdit(Model $record): bool
@@ -92,7 +96,7 @@ class TicketResource extends Resource
             return false;
         }
 
-        return self::currentUser()?->can('tickets.update') ?? false;
+        return self::currentUser()?->can('update', $record) ?? false;
     }
 
     public static function canDelete(Model $record): bool
@@ -101,12 +105,12 @@ class TicketResource extends Resource
             return false;
         }
 
-        return self::currentUser()?->can('tickets.delete') ?? false;
+        return self::currentUser()?->can('delete', $record) ?? false;
     }
 
     public static function canDeleteAny(): bool
     {
-        return self::currentUser()?->can('tickets.delete') ?? false;
+        return self::currentUser()?->can('delete', Ticket::class) ?? false;
     }
 
     public static function getNavigationLabel(): string
@@ -135,7 +139,7 @@ class TicketResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['project', 'status', 'priority', 'epic', 'creator', 'assignees']);
+            ->with(['project', 'status', 'priority', 'epic', 'creator', 'assignees', 'parent', 'children']);
     }
 
     /**

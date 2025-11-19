@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -22,9 +23,12 @@ class Ticket extends Model
         'ticket_status_id',
         'priority_id',
         'epic_id',
+        'sprint_id',
         'created_by',
         'uuid',
         'name',
+        'issue_type',
+        'parent_id',
         'description',
         'start_date',
         'due_date',
@@ -41,6 +45,7 @@ class Ticket extends Model
             'start_date' => 'date',
             'due_date' => 'date',
             'created_by' => 'integer',
+            'parent_id' => 'integer',
         ];
     }
 
@@ -156,6 +161,112 @@ class Ticket extends Model
     {
         /** @var HasMany<TicketHistory, Ticket> $relation */
         $relation = $this->hasMany(TicketHistory::class);
+
+        return $relation;
+    }
+
+    /**
+     * @return BelongsTo<Sprint, Ticket>
+     */
+    public function sprint(): BelongsTo
+    {
+        /** @var BelongsTo<Sprint, Ticket> $relation */
+        $relation = $this->belongsTo(Sprint::class);
+
+        return $relation;
+    }
+
+    /**
+     * @return BelongsTo<Ticket, Ticket>
+     */
+    public function parent(): BelongsTo
+    {
+        /** @var BelongsTo<Ticket, Ticket> $relation */
+        $relation = $this->belongsTo(Ticket::class, 'parent_id');
+
+        return $relation;
+    }
+
+    /**
+     * @return HasMany<Ticket, Ticket>
+     */
+    public function children(): HasMany
+    {
+        /** @var HasMany<Ticket, Ticket> $relation */
+        $relation = $this->hasMany(Ticket::class, 'parent_id');
+
+        return $relation;
+    }
+
+    /**
+     * @return HasMany<TicketDependency, Ticket>
+     */
+    public function dependencies(): HasMany
+    {
+        /** @var HasMany<TicketDependency, Ticket> $relation */
+        $relation = $this->hasMany(TicketDependency::class, 'ticket_id');
+
+        return $relation;
+    }
+
+    /**
+     * @return HasMany<TicketDependency, Ticket>
+     */
+    public function dependents(): HasMany
+    {
+        /** @var HasMany<TicketDependency, Ticket> $relation */
+        $relation = $this->hasMany(TicketDependency::class, 'depends_on_ticket_id');
+
+        return $relation;
+    }
+
+    /**
+     * Get tickets that this ticket depends on (blocks/relates).
+     *
+     * @return HasManyThrough<Ticket, TicketDependency, Ticket>
+     */
+    public function dependsOnTickets(): HasManyThrough
+    {
+        /** @var HasManyThrough<Ticket, TicketDependency, Ticket> $relation */
+        $relation = $this->hasManyThrough(
+            Ticket::class,
+            TicketDependency::class,
+            'ticket_id',
+            'id',
+            'id',
+            'depends_on_ticket_id'
+        );
+
+        return $relation;
+    }
+
+    /**
+     * Get tickets that depend on this ticket.
+     *
+     * @return HasManyThrough<Ticket, TicketDependency, Ticket>
+     */
+    public function blockingTickets(): HasManyThrough
+    {
+        /** @var HasManyThrough<Ticket, TicketDependency, Ticket> $relation */
+        $relation = $this->hasManyThrough(
+            Ticket::class,
+            TicketDependency::class,
+            'depends_on_ticket_id',
+            'id',
+            'id',
+            'ticket_id'
+        );
+
+        return $relation;
+    }
+
+    /**
+     * @return HasMany<TicketCustomValue, Ticket>
+     */
+    public function customValues(): HasMany
+    {
+        /** @var HasMany<TicketCustomValue, Ticket> $relation */
+        $relation = $this->hasMany(TicketCustomValue::class);
 
         return $relation;
     }

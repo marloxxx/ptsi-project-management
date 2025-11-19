@@ -77,29 +77,35 @@ class UnitResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return self::currentUser()?->can('units.view') ?? false;
+        return self::currentUser()?->can('viewAny', Unit::class) ?? false;
     }
 
     public static function canCreate(): bool
     {
-        return self::currentUser()?->can('units.create') ?? false;
+        return self::currentUser()?->can('create', Unit::class) ?? false;
     }
 
     public static function canEdit(Model $record): bool
     {
-        /** @var Unit $record */
-        return self::currentUser()?->can('units.update', $record) ?? false;
+        if (! $record instanceof Unit) {
+            return false;
+        }
+
+        return self::currentUser()?->can('update', $record) ?? false;
     }
 
     public static function canDelete(Model $record): bool
     {
-        /** @var Unit $record */
-        return self::currentUser()?->can('units.delete', $record) ?? false;
+        if (! $record instanceof Unit) {
+            return false;
+        }
+
+        return self::currentUser()?->can('delete', $record) ?? false;
     }
 
     public static function canDeleteAny(): bool
     {
-        return self::currentUser()?->can('units.delete') ?? false;
+        return self::currentUser()?->can('delete', Unit::class) ?? false;
     }
 
     public static function getNavigationLabel(): string

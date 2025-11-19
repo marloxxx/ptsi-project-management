@@ -24,7 +24,7 @@ php artisan key:generate
 Edit `.env`:
 
 ```env
-APP_NAME="PTSI Admin"
+APP_NAME="PTSI Project Management"
 APP_ENV=local
 APP_URL=http://localhost
 

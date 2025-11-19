@@ -8,9 +8,12 @@ use App\Filament\Resources\Projects\Pages\CreateProject;
 use App\Filament\Resources\Projects\Pages\EditProject;
 use App\Filament\Resources\Projects\Pages\ListProjects;
 use App\Filament\Resources\Projects\Pages\ViewProject;
+use App\Filament\Resources\Projects\RelationManagers\CustomFieldsRelationManager;
 use App\Filament\Resources\Projects\RelationManagers\EpicsRelationManager;
 use App\Filament\Resources\Projects\RelationManagers\ProjectNotesRelationManager;
+use App\Filament\Resources\Projects\RelationManagers\SprintsRelationManager;
 use App\Filament\Resources\Projects\RelationManagers\TicketStatusesRelationManager;
+use App\Filament\Resources\Projects\RelationManagers\WorkflowRelationManager;
 use App\Filament\Resources\Projects\Schemas\ProjectForm;
 use App\Filament\Resources\Projects\Schemas\ProjectInfolist;
 use App\Filament\Resources\Projects\Tables\ProjectsTable;
@@ -62,7 +65,10 @@ class ProjectResource extends Resource
     {
         return [
             TicketStatusesRelationManager::class,
+            WorkflowRelationManager::class,
+            CustomFieldsRelationManager::class,
             EpicsRelationManager::class,
+            SprintsRelationManager::class,
             ProjectNotesRelationManager::class,
         ];
     }
@@ -84,29 +90,35 @@ class ProjectResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return self::currentUser()?->can('projects.view') ?? false;
+        return self::currentUser()?->can('viewAny', Project::class) ?? false;
     }
 
     public static function canCreate(): bool
     {
-        return self::currentUser()?->can('projects.create') ?? false;
+        return self::currentUser()?->can('create', Project::class) ?? false;
     }
 
     public static function canEdit(Model $record): bool
     {
-        /** @var Project $record */
-        return self::currentUser()?->can('projects.update') ?? false;
+        if (! $record instanceof Project) {
+            return false;
+        }
+
+        return self::currentUser()?->can('update', $record) ?? false;
     }
 
     public static function canDelete(Model $record): bool
     {
-        /** @var Project $record */
-        return self::currentUser()?->can('projects.delete') ?? false;
+        if (! $record instanceof Project) {
+            return false;
+        }
+
+        return self::currentUser()?->can('delete', $record) ?? false;
     }
 
     public static function canDeleteAny(): bool
     {
-        return self::currentUser()?->can('projects.delete') ?? false;
+        return self::currentUser()?->can('delete', Project::class) ?? false;
     }
 
     public static function getNavigationLabel(): string
